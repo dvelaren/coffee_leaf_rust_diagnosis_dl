@@ -1,9 +1,9 @@
-from time import time
-import os
-import shutil
 import collections
 import math
+import os
 import random
+import shutil
+from time import time
 
 
 class TrainTestSetsSplitter:

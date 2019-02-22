@@ -1,11 +1,12 @@
-from train_test_sets_splitter import TrainTestSetsSplitter
-import sys
 import os
+import sys
+
+from train_test_sets_splitter import TrainTestSetsSplitter
 
 train_test_splitter = TrainTestSetsSplitter()
 
 arguments = sys.argv
-if len(arguments) > 1:
+if len(arguments) > 2:
     data_path = arguments[1]
     destination_name = arguments[2]
     if os.path.exists(data_path):
