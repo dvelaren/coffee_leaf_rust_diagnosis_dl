@@ -210,7 +210,7 @@ class preprocessData:
 		retval, threshold = cv2.threshold(img.copy(), 50, 255, cv2.THRESH_BINARY)
 		th = cv2.adaptiveThreshold(grayscaled, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 125, 1)
 		gh = self.getGrapichHistogram(img.copy(),False)
-		im2, contours, hierarchy = cv2.findContours(th.copy() ,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+		contours, _ = cv2.findContours(th.copy() ,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 		self.tempImage = img
 
 		#window_image = 'original'
@@ -238,8 +238,7 @@ class preprocessData:
 
 		gray = cv2.bilateralFilter(grayscaled, 11, 17, 17)
 		edged = cv2.Canny(gray, 30, 200)
-
-		im2, cnts, hierarchy = cv2.findContours(edged.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+		cnts, _ = cv2.findContours(edged.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 		cnts = sorted(cnts, key = cv2.contourArea, reverse = True)[:10]
 		#cnts = imutils.grab_contours(cnts)
 		#cnts = sorted(cnts, key = cv2.contourArea, reverse = True)[:10]
@@ -451,30 +450,30 @@ class preprocessData:
 		jsonf,rgb,re,rgn, idk = self.findTypes4Clean(folder)
 		# clean the rgn images
 		#loop for clean all the re images
-		# for e in re:
-		# 	frame =cv2.imread(e)
-		# 	#print(frame.shape[2])
-		# 	print(e)
-		# 	cleanFrame = self.cleanRe(frame)
-		# 	cv2.imwrite(e,cleanFrame)
-		# 	#cv2.imshow("newFrame",cleanFrame)
-		# 	#cv2.waitKey(1)
+		for e in re:
+			frame =cv2.imread(e)
+			#print(frame.shape[2])
+			print(e)
+			cleanFrame = self.cleanRe(frame)
+			cv2.imwrite(e,cleanFrame)
+			#cv2.imshow("newFrame",cleanFrame)
+			#cv2.waitKey(1)
 
-		# # loop for clean all the re images
-		# for n in rgn:
-		# 	frame =cv2.imread(n)
-		# 	#print(frame.shape[2])
-		# 	cleanFrame = self.cleanRgn(frame)
-		# 	cv2.imwrite(n,cleanFrame)
-		# #	cv2.imshow("newFrame",cleanFrame)
-		# 	print(n)
+		# loop for clean all the re images
+		for n in rgn:
+			frame =cv2.imread(n)
+			#print(frame.shape[2])
+			cleanFrame = self.cleanRgn(frame)
+			cv2.imwrite(n,cleanFrame)
+		#	cv2.imshow("newFrame",cleanFrame)
+			print(n)
 
-		# for b in rgb:
-		# 	frame = cv2.imread(b)
-		# 	cleanFrame = self.cleanRgb(frame)
-		# 	cv2.imwrite(b,cleanFrame)
-		# 	#cv2.imshow("newFrame",cleanFrame)
-		# 	print(b)
+		for b in rgb:
+			frame = cv2.imread(b)
+			cleanFrame = self.cleanRgb(frame)
+			cv2.imwrite(b,cleanFrame)
+			#cv2.imshow("newFrame",cleanFrame)
+			print(b)
 			
 
 		contTotal = 0
