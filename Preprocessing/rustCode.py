@@ -11,9 +11,8 @@ import json
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-v", "--verbose", help="Mostrar informacion de depuracion", action="store_true")
-parser.add_argument("-fp", "--fp", help="Carpeta a procesar")
-parser.add_argument("-ap", "--ap", help="absolute path")
+parser.add_argument("-v", "--verbose", help="show depuration", action="store_true")
+parser.add_argument("-fp", "--fp", help="Folder where is the four target folders")
 
 args = parser.parse_args()
 
@@ -21,19 +20,14 @@ args = parser.parse_args()
 class preprocessData:
 
 	global file, folderPath, detector, tempImage
-	def __init__(self,folderPath,absolutePath):
+	def __init__(self,folderPath):
 		
 		self.folderPath = folderPath
-		self.absolutePath = absolutePath
 		self.detector = dlib.simple_object_detector("detectors/detector_plants_v5_C150.svm")
 		self.tempImage = None
 
 
-
-
-
 	def findTypes4Clean(self,folder):
-		print(folder)
 		json = []
 		rgb = []
 		re = []
@@ -42,25 +36,44 @@ class preprocessData:
 		other = []
 		#find the files in the whole path
 		cont = 0
-		for root, dirs, files in os.walk(folder):
+		# search in rgb files
+		folder1 = folder + "rgb_data"
+		for root, dirs, files in os.walk(folder1):
 			for file in files:
 				line = str(os.path.join(root, file))
 				#print(line)
 				cont+=1
-				if line.find("rgb_") != -1:
-					rgb.append(line)
+				rgb.append(line)
 
-				elif line.find("re_") != -1:
-					re.append(line)
 
-				elif line.find("rgn_") != -1:
-					rgn.append(line)
+		# search in re files
+		folder2 = folder + "re_data"
+		for root, dirs, files in os.walk(folder2):
+			for file in files:
+				line = str(os.path.join(root, file))
+				#print(line)
+				cont+=1
+				re.append(line)
 
-				elif line.find("json_") != -1:
-					json.append(line)
 
-				else:
-					other.append(line)
+		# search in rgn files
+		folder3 = folder + "rgn_data"
+		for root, dirs, files in os.walk(folder3):
+			for file in files:
+				line = str(os.path.join(root, file))
+				#print(line)
+				cont+=1
+				rgn.append(line)
+
+
+		# search in json files
+		folder4 = folder + "json_data"
+		for root, dirs, files in os.walk(folder4):
+			for file in files:
+				line = str(os.path.join(root, file))
+				#print(line)
+				cont+=1
+				json.append(line)
 			
 
 		#print(json)
@@ -104,9 +117,6 @@ class preprocessData:
 		frame[y_offset:y_offset+histImage.shape[0], x_offset:x_offset+histImage.shape[1]] = histImage
 
 		return frame
-
-	def cleanJson(self,json):
-		print(json)
 
 
 	def saveVideoAnalyse(self,rgn):
@@ -187,8 +197,6 @@ class preprocessData:
 			cv2.rectangle(histImg, (i*bin_w, h), ( (i+1)*bin_w, h - int(np.round( hist[i]*h/255.0 )) ), (0, 0, 255), cv2.FILLED)
 		cv2.imshow('Histogram', histImg)
 		
-
-
 
 	def cleanValue(self,pixel):
 		if pixel < 0 :
@@ -277,8 +285,6 @@ class preprocessData:
 		return valueResponse
 
 
-
-
 	def cleanRe(self,frame):
 
 		x = frame.shape[0]
@@ -296,7 +302,7 @@ class preprocessData:
 
 			crop_img = frame[y:y+h, x:x+w]
 
-			decision = self.analysePlant(crop_img,True)
+			decision = self.analysePlant(crop_img)
 			if decision:
 				x_offset= x
 				y_offset= y
@@ -311,9 +317,9 @@ class preprocessData:
 		#cv2.write(img,newFrame)
 
 		
-		cv2.imshow("dects",frame)
+		#cv2.imshow("dects",frame)
 
-		cv2.waitKey(10000)
+		#cv2.waitKey(10000)
 		return newFrame
 
 
@@ -349,44 +355,60 @@ class preprocessData:
 		#cv2.write(img,newFrame)
 
 		
-		cv2.imshow("dects",frame)
+		#cv2.imshow("dects",frame)
 
-		cv2.waitKey(10000)
+		#cv2.waitKey(10000)
 		return newFrame
 
 	def analyseRgbPlant(self, img, debug=False):
 
-		ORANGE_MIN = np.array([5, 50, 50],np.uint8)
-		ORANGE_MAX = np.array([25, 255, 255],np.uint8)
+		ORANGE_MIN = np.array([0, 50, 50],np.uint8)
+		ORANGE_MAX = np.array([40 , 255, 255],np.uint8)
+
+		RED_MIN = np.array([0, 100, 100],np.uint8)
+		RED_MAX = np.array([160, 100, 100],np.uint8)
+
+		GREEN_MIN = np.array([100, 0, 100],np.uint8)
+		GREEN_MAX = np.array([100, 255, 100],np.uint8)
 
 		hsv_img = cv2.cvtColor(img.copy(),cv2.COLOR_BGR2HSV)
-		frame_threshed = cv2.inRange(hsv_img, ORANGE_MIN, ORANGE_MAX)
+		frame_threshed = cv2.inRange(hsv_img, RED_MIN, RED_MAX)
 
-		cv2.imshow("thresh",frame_threshed)
-		cv2.imshow("img",img)		
+		mask = cv2.inRange(hsv_img, (36, 10, 10), (76, 255,255))
 
-		for x in range(0,img.shape[0]):
-			for y in range(0,img.shape[1]):
-				r,g,b = img[x,y]
-				if (r > 200 or g > 200 or b > 200) or ((r<80 and g<10  and b<80)and(r<200 and g<250 and b<200)):
-					img[x,y]=0
+		maskOrange = cv2.inRange(hsv_img, ORANGE_MIN, ORANGE_MAX)
+		#mask = cv2.inRange(hsv_img, (36, 25, 25), (70, 255,255))
 
+		## slice the green
+		imask = mask>0
+		green = np.zeros_like(img, np.uint8)
+		green[imask] = img[imask]
 
-		cv2.imshow("newFrame",img)
+		imask2 = maskOrange>0
+		orange = green
+		orange[imask2] = img[imask2]
+
+		#cv2.imshow("thresh",hsv_img)
+		#cv2.imshow("green",green)
+		#cv2.imshow("orange",orange)
+		#cv2.imshow("img",img)		
 				
 
 		valueResponse = False
 
-		return valueResponse
+		return valueResponse,orange
 
 	def cleanRgb(self, frame):
-		decision = self.analyseRgbPlant(frame,False)
-		cv2.waitKey(100000)
-		return frame
+		decision,img = self.analyseRgbPlant(frame,False)
+		
+		return img
 
 	def cleanJson(self, json_data):
-		
+		#print(json_data)
 		with open(json_data) as f:
+			
+			if os.stat(json_data).st_size == 0:
+				return 0,0,0,0,0,0,False
 			data = json.load(f)
 			#print(data)
 			
@@ -394,9 +416,10 @@ class preprocessData:
 
 			if 'ph' not in data or 'soil_temperature' not in data or 'soil_moisture' not in data or 'illuminance' not in data or 'env_temperature' not in data or 'env_humidity' not in data:
 				return 0,0,0,0,0,0,False
+
 			# validate the ranges of the values
-			ph = data['ph']
 			band = True
+			ph = data['ph']
 			if ph < 4.5 or ph > 9.5:
 				band = False
 
@@ -425,37 +448,61 @@ class preprocessData:
 
 	def cleanFiles(self,folder):
 
-		json,rgb,re,rgn, idk = self.findTypes4Clean(folder)
+		jsonf,rgb,re,rgn, idk = self.findTypes4Clean(folder)
 		# clean the rgn images
 		#loop for clean all the re images
 		# for e in re:
 		# 	frame =cv2.imread(e)
-		# 	print(frame.shape[2])
-		# 	cleanFrame = self.cleanRe(frame)
-		# 	cv2.imshow("newFrame",cleanFrame)
+		# 	#print(frame.shape[2])
 		# 	print(e)
+		# 	cleanFrame = self.cleanRe(frame)
+		# 	cv2.imwrite(e,cleanFrame)
+		# 	#cv2.imshow("newFrame",cleanFrame)
+		# 	#cv2.waitKey(1)
 
 		# # loop for clean all the re images
 		# for n in rgn:
 		# 	frame =cv2.imread(n)
-		# 	print(frame.shape[2])
+		# 	#print(frame.shape[2])
 		# 	cleanFrame = self.cleanRgn(frame)
-		# 	cv2.imshow("newFrame",cleanFrame)
+		# 	cv2.imwrite(n,cleanFrame)
+		# #	cv2.imshow("newFrame",cleanFrame)
 		# 	print(n)
 
 		# for b in rgb:
 		# 	frame = cv2.imread(b)
 		# 	cleanFrame = self.cleanRgb(frame)
+		# 	cv2.imwrite(b,cleanFrame)
+		# 	#cv2.imshow("newFrame",cleanFrame)
+		# 	print(b)
 			
-		# 	print(b)		
+
 		contTotal = 0
 		contGood = 0
 		contBad = 0
-		for j in json:
+		for j in jsonf:
+			#print(j)
 			ph, s_temp, s_moist, illuminance, env_temp, env_humi,Json = self.cleanJson(j)
+			#print(Json)
 			if Json:
+				
+				data = {
+					'ph' : ph,
+					's_temperature' : s_temp,
+					's_moisture': s_moist,
+					'illuminance' : illuminance,
+					'env_temperature' : env_temp,
+					'env_humidity' : env_humi
+					} 
+
+				#print(data)
+				
+				with open(j, 'w') as outfile:
+					json.dump(data, outfile, indent=4)
+
 				contGood+=1
 			if not(Json):
+				os.remove(j)
 				# print(ph)
 				# print(s_temp )
 				# print(s_moist)
@@ -466,31 +513,18 @@ class preprocessData:
 
 				contBad+=1
 
-
 			contTotal+=1
 			
 			#print(Json)
 
-		print("contT "+str(contTotal))
-		print("contG "+str(contGood))
-		print("contB "+str(contBad))
+		# print("contT "+str(contTotal))
+		# print("contG "+str(contGood))
+		# print("contB "+str(contBad))
 
 	
 
-p = preprocessData(args.fp, args.ap)
-#p.extractFiles()
-p.cleanFiles(args.ap)
-
-
-
-
-# Para comparar el número original de archivos
-# json,rgb,re,rgn, idk = p.findTypes(args.fp)
-# print(len(json))
-# print(len(rgb))
-# print(len(re))
-# print(len(rgn))
-# print(len(idk))
+p = preprocessData(args.fp)
+p.cleanFiles(args.fp)
 
 
 
