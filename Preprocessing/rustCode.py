@@ -7,6 +7,7 @@ import shutil
 import numpy as np
 import imutils
 import dlib
+import json
 
 
 parser = argparse.ArgumentParser()
@@ -28,48 +29,8 @@ class preprocessData:
 		self.tempImage = None
 
 
-	def createSubFolders(self):
-		types = ["json","rgb","re","rgn"]
 
-		for i in types:
-			path = str(self.absolutePath)+str(i)+"_data"
-			if not os.path.exists(path):
-				os.mkdir(path)
-				
-	def findTypes(self,folder):
 
-		json = []
-		rgb = []
-		re = []
-		rgn = []
-		# this list has the values which didn't match with any type
-		other = []
-		cont=0
-		#find the files in the whole path
-		for root, dirs, files in os.walk(folder):
-			for file in files:
-				line = str(os.path.join(root, file))
-				cont+=1
-				if line.find("rgb") != -1:
-					rgb.append(line)
-
-				elif line.find("re.") != -1:
-					re.append(line)
-
-				elif line.find("rgn.") != -1:
-					rgn.append(line)
-
-				elif line.find(".json") != -1:
-					json.append(line)
-
-				else:
-					other.append(line)
-
-		print("cont4: "+str(cont))
-
-		#print(json)
-		
-		return json,rgb,re,rgn, other
 
 	def findTypes4Clean(self,folder):
 		print(folder)
@@ -106,129 +67,6 @@ class preprocessData:
 		
 		return json,rgb,re,rgn, other
 
-	def sendData(self,list_type,typestr):
-	
-		cont = 0
-		changeCount = 0
-		for i in list_type:
-
-			#Erase the begginig of the path
-			cfpath = i.replace("../model_preprocessing/data","")
-			#Find the last '/'
-			line_split = cfpath.rindex('/')
-			#use the last '/' to erase the namefile
-			cfpath = cfpath[:line_split+1]
-			#update the path with the folder and the rest of the path
-			save_file = "../model_preprocessing/data2/"+typestr+"/"+cfpath
-
-			#Erase a '/' to find the new last index of the '/'
-			save_file = save_file[:len(save_file)-1]
-			
-			#print("sin/"+save_file)
-			#Find the last '/'
-			line_split = save_file.rindex('/')
-
-			#Erase the folder lot*
-			save_file = save_file[:line_split+1]
-			#print("sin/pal"+save_file)
-
-			# Extract the number of the illness to restart the counter
-			if changeCount != i[28] and typestr != "rgb_data":
-				cont=0
-
-			#Update the new number of the illness
-			changeCount = i[28]
-			#print(typestr+str(changeCount))
-
-			# If the type is rgb its nececesarry to delete other folder of the path
-			if typestr == "rgb_data":
-				last_index = i.rindex('/')
-				place = i[last_index-1:last_index]
-				
-				#print(place)
-				#print(i)
-
-				save_file = save_file[:save_file.find("lot")]
-				save_file = save_file[:-2]
-				#Save the new path with the new place of the rgb specific illness 
-				save_file = save_file +place+"/"
-				
-				
-				#print(save_file)
-
-			#Create the folder
-			if not os.path.exists(save_file):
-				os.makedirs(save_file)
-
-			#copy the file
-			shutil.copy(i, save_file)
-
-			file = i[i.rindex('/'):]
-			ext = ""
-
-			if typestr == "json_data":
-				ext = ".json"
-			else:
-				ext = ".jpg"
-
-			#print(typestr+str(cont))
-			#print(save_file+str(cont)+ext)
-			os.rename(save_file+file, save_file+str(cont)+ext)
-			cont+=1
-		
-
-			
-
-
-	def extractFiles(self):
-		#path = os.listdir(self.folderPath)
-
-		# Create the four new subfolders
-		self.createSubFolders()
-
-		json,rgb,re,rgn, idk = self.findTypes(self.folderPath)
-
-		types = [json,rgb,re,rgn]
-		string_types = ["json_data","rgb_data","re_data","rgn_data"]
-		
-		#Print the total values of the set
-		#print(len(json)+len(rgb)+len(re)+len(rgn)+len(idk))
-		#Print the values which doesn't match with no type
-		#print(idk)
-
-		for st,t in zip(string_types,types):
-			self.sendData(t,st)
-
-		# Rename all the rgb files
-		p.renameRGBFiles(args.ap)
-
-#4880
-
-	def renameRGBFiles(self,path):
-		cont = 0
-		number = 0
-		contentro= 0
-		for root, dirs, files in os.walk(path):
-			for file in files:
-				line = str(os.path.join(root, file))
-				
-				if line.find("rgb_") != -1:
-					
-					findNumber = line.rindex("data")
-					
-					#print(line[findNumber+5:findNumber+6])
-					if number != line[findNumber+5:findNumber+6]:
-						cont = 0
-						contentro+=1
-
-					number = line[findNumber+5:findNumber+6]
-
-					line2 = line[:line.rindex('/')]
-					newfile = line2+"/"+"0"+str(cont)+".jpg"
-					#print(line)
-					#print(newfile)
-					os.rename(line, newfile )
-					cont+=1
 					
 	
 	def getGrapichHistogram(self,frame,concatenate=True):
@@ -458,7 +296,7 @@ class preprocessData:
 
 			crop_img = frame[y:y+h, x:x+w]
 
-			decision = self.analysePlant(crop_img)
+			decision = self.analysePlant(crop_img,True)
 			if decision:
 				x_offset= x
 				y_offset= y
@@ -546,8 +384,43 @@ class preprocessData:
 		cv2.waitKey(100000)
 		return frame
 
-	def cleanJson(self, json):
-		return json
+	def cleanJson(self, json_data):
+		
+		with open(json_data) as f:
+			data = json.load(f)
+			#print(data)
+			
+			# validate if all the keys exists
+
+			if 'ph' not in data or 'soil_temperature' not in data or 'soil_moisture' not in data or 'illuminance' not in data or 'env_temperature' not in data or 'env_humidity' not in data:
+				return 0,0,0,0,0,0,False
+			# validate the ranges of the values
+			ph = data['ph']
+			band = True
+			if ph < 4.5 or ph > 9.5:
+				band = False
+
+			s_temp = data['soil_temperature']
+			if s_temp > 40:
+				band = False
+
+			s_moist = data['soil_moisture']
+			if s_moist < 10 or s_moist > 95:
+				band = False
+
+			illuminance = data['illuminance']
+			if illuminance < 40 or illuminance > 15000:
+				band = False
+
+			env_temp = data['env_temperature']
+			if env_temp < 10 or env_temp > 40:
+				band = False
+
+			env_humi = data['env_humidity']
+			if env_humi < 20 or env_humi > 99:
+				band = False
+
+		return ph, s_temp, s_moist, illuminance, env_temp, env_humi, band
 
 
 	def cleanFiles(self,folder):
@@ -562,7 +435,6 @@ class preprocessData:
 		# 	cv2.imshow("newFrame",cleanFrame)
 		# 	print(e)
 
-
 		# # loop for clean all the re images
 		# for n in rgn:
 		# 	frame =cv2.imread(n)
@@ -571,31 +443,43 @@ class preprocessData:
 		# 	cv2.imshow("newFrame",cleanFrame)
 		# 	print(n)
 
-
-		for b in rgb:
-			frame = cv2.imread(b)
-			cleanFrame = self.cleanRgb(frame)
+		# for b in rgb:
+		# 	frame = cv2.imread(b)
+		# 	cleanFrame = self.cleanRgb(frame)
 			
-			print(b)		
-
-
+		# 	print(b)		
+		contTotal = 0
+		contGood = 0
+		contBad = 0
 		for j in json:
-			Json = self.cleanJson(j)
-			print(j)
+			ph, s_temp, s_moist, illuminance, env_temp, env_humi,Json = self.cleanJson(j)
+			if Json:
+				contGood+=1
+			if not(Json):
+				# print(ph)
+				# print(s_temp )
+				# print(s_moist)
+				# print(illuminance)
+				# print(env_temp)
+				# print(env_humi)
+				# print("------------")
+
+				contBad+=1
 
 
+			contTotal+=1
+			
+			#print(Json)
 
+		print("contT "+str(contTotal))
+		print("contG "+str(contGood))
+		print("contB "+str(contBad))
 
-		
+	
 
 p = preprocessData(args.fp, args.ap)
 #p.extractFiles()
 p.cleanFiles(args.ap)
-
-
-
-
-
 
 
 
