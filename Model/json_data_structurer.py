@@ -13,7 +13,10 @@ class JsonDataStructurer:
         pass
 
     def structure_data(self, data_path, destination_path):
-        """TODO"""
+        """
+        Structures the json data into feature and label data, generates a scaler and saves the results into a single
+        file.
+        """
         print("Structuring json data...")
         json_data_file_path = os.path.join(destination_path, "json_data.pickle")
         # Removes the json data file, if it already exists.
