@@ -41,7 +41,7 @@ Functions table:
 |---------------|--------------------------|-----------------------------------------------------|
 |findTypes4Clean   |     folder(Str)       | re(list),rgn(list),rgb(list),json(list)		   	 |
 |getGraphicHistogram | frame(numpy.ndarray), concatenate(Bool)(Optional) | frame(numpy.ndarray)  |
-|saveVideoAnalyse   |     list[](Str)       |                                                    |
+|saveVideoAnalyse   |     list(Str)       |                                                    |
 |analysePlant   | img(numpy.ndarray), debug(Bool)(default=False)|    valueResponse(Bool)         |
 |cleanRe   |     frame(numpy.ndarray)       | frame(numpy.ndarray)		   	 					 |
 |cleanRgn   |     frame(numpy.ndarray)       | frame(numpy.ndarray)		   	 					 |
