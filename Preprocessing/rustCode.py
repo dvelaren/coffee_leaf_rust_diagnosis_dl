@@ -203,9 +203,12 @@ class preprocessData:
 
 		# Get the histogram graphic
 		gh = self.getGraphicHistogram(img.copy(),False)
-
+		version = int(cv2.__version__[:1])
 		# Find the contours
-		_ , contours, _ = cv2.findContours(th.copy() ,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+		if version >= 4:
+			contours, _ = cv2.findContours(th.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+		else:
+			_, contours, _ = cv2.findContours(th.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
 		# detect if there is a plant to re-confirm 
 		dets = self.detector(img)
@@ -226,8 +229,13 @@ class preprocessData:
 		gray = cv2.bilateralFilter(grayscaled, 11, 17, 17)
 		edged = cv2.Canny(gray, 30, 200)
 
+        
 		# Find the new contourns
-		_, cnts, _ = cv2.findContours(edged.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+		if version >= 4:
+			cnts, _ = cv2.findContours(edged.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+		else:
+			_, cnts, _ = cv2.findContours(edged.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            
 		cnts = sorted(cnts, key = cv2.contourArea, reverse = True)[:10]
 		
 		screenCnt = []
