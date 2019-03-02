@@ -291,7 +291,7 @@ class preprocessData:
 		dets = self.detector(frame)
 
 		# Create a new black frame
-		newFrame = np.zeros((x,y,ch),np.uint8)
+		newFrame = np.zeros((x,y,ch),np.float32)
 		
 		# For each plant into the image
 		for k, d in enumerate(dets):
@@ -331,7 +331,7 @@ class preprocessData:
 		dets = self.detector(frame)
 
 		# Create a new black frame
-		newFrame = np.zeros((x,y,ch),np.uint8)
+		newFrame = np.zeros((x,y,ch),np.float32)
 	
 		# For each plant into the image
 		for k, d in enumerate(dets):
@@ -384,7 +384,7 @@ class preprocessData:
 		# slice the green
 		imask = mask>0
 		# create a black image
-		green = np.zeros_like(img, np.uint8)
+		green = np.zeros_like(img, np.float32)
 		# overwrite the black image with the mask
 		green[imask] = img[imask]
 
@@ -455,8 +455,8 @@ class preprocessData:
 				
 					document = {
 						'ph' : ph,
-						's_temperature' : s_temp,
-						's_moisture': s_moist,
+						'soil_temperature' : s_temp,
+						'soil_moisture': s_moist,
 						'illuminance' : illuminance,
 						'env_temperature' : env_temp,
 						'env_humidity' : env_humi

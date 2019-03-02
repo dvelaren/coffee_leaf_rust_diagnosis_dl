@@ -83,8 +83,8 @@ class createStructure:
 		changeCount = 0
 
 		for i in list_type:
-
-			cfpath = i[i.find('data')+len('data'):]
+			# Replace whole file path with the part of the file path where the lot is 
+			cfpath = i.replace(self.folderPath,'')
 			# Find the last '/'
 			line_split = cfpath.rindex('/')
 			# Use the last '/' to erase the namefile
