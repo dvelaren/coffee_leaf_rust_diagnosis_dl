@@ -127,7 +127,7 @@ class createStructure:
 			if typestr == "json_data":
 				ext = ".json"
 			else:
-				ext = ".jpg"
+				ext = ".JPG"
 
 			# rename the file
 			os.rename(save_file+file, save_file+str(cont)+ext)
@@ -192,9 +192,9 @@ class createStructure:
 
 					line2 = line[:line.rindex('/')]
 					if firsTime:
-						newfile = line2+"/"+str(cont)+".jpg"
+						newfile = line2+"/"+str(cont)+".JPG"
 					else:
-						newfile = line2+"/"+"0"+str(cont)+".jpg"
+						newfile = line2+"/"+"0"+str(cont)+".JPG"
 					
 					os.rename(line, newfile )
 					cont+=1
@@ -224,9 +224,9 @@ class createStructure:
 
 					line2 = line[:line.rindex('/')]
 					if firsTime:
-						newfile = line2+"/"+str(cont)+".jpg"
+						newfile = line2+"/"+str(cont)+".JPG"
 					else:
-						newfile = line2+"/"+"0"+str(cont)+".jpg"
+						newfile = line2+"/"+"0"+str(cont)+".JPG"
 
 					os.rename(line, newfile )
 					cont+=1
@@ -257,9 +257,9 @@ class createStructure:
 
 					line2 = line[:line.rindex('/')]
 					if firsTime:
-						newfile = line2+"/"+str(cont)+".jpg"
+						newfile = line2+"/"+str(cont)+".JPG"
 					else:
-						newfile = line2+"/"+"0"+str(cont)+".jpg"
+						newfile = line2+"/"+"0"+str(cont)+".JPG"
 					
 					os.rename(line, newfile )
 					cont+=1
