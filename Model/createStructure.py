@@ -1,12 +1,6 @@
-import cv2
 import os
 import argparse
-from multiprocessing import Pool
-import multiprocessing
 import shutil
-import numpy as np
-import imutils
-import dlib
 import json
 
 

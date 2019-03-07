@@ -5,7 +5,7 @@ This part of project is focused on tries to make a cleaning of the diferent type
 
 # Sources Files:
 
-1. createStructure:
+1. createStructure (It is into Model folder):
 
 This code creates the basic structure for the folder types. 
 
@@ -65,7 +65,7 @@ The output is the xml file which can be opened with an ethernet navigator.
 
 
 
-4. cleanStructure:
+4. cleanStructure (It is into Model folder):
 
 This code is the first part of the pipeline and it cleans all the data folder about json files problems and empty rgb folders into the lots
 
@@ -91,7 +91,7 @@ Functions table:
 The explanation of each function can be find inside of the source code.
 
 
-5. dataStructuring
+5. dataStructuring(It is into Model folder)
 		
 
 This code splits the data into train_set and test_set through a stop criterion where test is representated by the 25% of the minimum of the amount of the any type (json,rgb,re,rgn)

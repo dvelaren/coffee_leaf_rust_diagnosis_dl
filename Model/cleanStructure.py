@@ -1,15 +1,9 @@
-import cv2
 import os
 import argparse
-from multiprocessing import Pool
-import multiprocessing
 import shutil
-import numpy as np
-import imutils
-import dlib
 import json
 import glob
-import shutil
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-fp", "--fp", help="Folder where is the data")
