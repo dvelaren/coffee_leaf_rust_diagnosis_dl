@@ -12,7 +12,7 @@ from distutils.dir_util import copy_tree
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-fp", "--fp", help="Folder where is the data")
-parser.add_argument("-fd", "--fd", help="The name of the new folder where is going to be the data")
+parser.add_argument("-dn", "--dn", help="The name of the new folder where is going to be the data")
 
 args = parser.parse_args()
 
@@ -229,7 +229,7 @@ class dataStructuring:
 		folder_path_list = folder_path_list[:len(folder_path_list)-2]
 
 		# Create a new folder path without the last element, and concatenate the new name 
-		new_folder_path = '/'.join(folder_path_list) + '/'+ args.fd
+		new_folder_path = '/'.join(folder_path_list) + '/'+ args.dn
 		self.destination_path = new_folder_path 
 		
 		lot_dirs_g = self.split_data_into_train_test(self.folder_path,self.destination_path)
@@ -284,7 +284,7 @@ class dataStructuring:
 			self.copy_tree(train_set,train_set_path,label_directory)
 			self.copy_tree(test_set,test_set_path,label_directory)
 			
-	
+		print("Splitting data successfully...")
 
-ds = dataStructuring(args.fp,args.fd)
+ds = dataStructuring(args.fp,args.dn)
 ds.run()

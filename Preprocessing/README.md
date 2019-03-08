@@ -5,7 +5,7 @@ This part of project is focused on tries to make a cleaning of the diferent type
 
 # Sources Files:
 
-1. createStructure (It is into Model folder):
+1. createStructure:
 
 This code creates the basic structure for the folder types. 
 
