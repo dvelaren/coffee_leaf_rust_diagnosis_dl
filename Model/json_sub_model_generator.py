@@ -62,38 +62,36 @@ class JsonSubModelGenerator:
             class_weight[label] = float(max_occurrences / occurrences)
         return class_weight
 
-    def create_model(self, init_mode="normal", activation="relu", dropout_rate=0.0, optimizer="adam"):
+    def create_model(self, kernel_initializer="normal", activation="relu", rate=0.0, optimizer="adam"):
         """Creates and compiles the model using the given hyperparameters."""
         model = Sequential()
-        model.add(Dense(64, input_shape=(6,), kernel_initializer=init_mode))
+        model.add(Dense(units=1, kernel_initializer=kernel_initializer), input_shape=(6,))
         model.add(Activation(activation=activation))
-        model.add(Dropout(rate=dropout_rate))
-        model.add(Dense(32, kernel_initializer=init_mode))
+        model.add(Dropout(rate=rate))
+        model.add(Dense(units=8, kernel_initializer=kernel_initializer))
         model.add(Activation(activation=activation))
-        model.add(Dropout(rate=dropout_rate))
-        model.add(Dense(4, kernel_initializer=init_mode))
-        model.add(Activation("softmax"))
-        model.compile(loss="sparse_categorical_crossentropy", optimizer=optimizer, metrics=["accuracy"])
+        model.add(Dropout(rate=rate))
+        model.add(Dense(units=4, kernel_initializer=kernel_initializer))
+        model.add(Activation(activation="softmax"))
+        model.compile(optimizer=optimizer, loss="sparse_categorical_crossentropy", metrics=["accuracy"])
         return model
 
     def get_param_grid(self):
         """Creates the hyperparameters grid for trying different combinations when training the model."""
         param_grid = dict()
-        epochs = [10, 20, 30]
-        batch_size = [10, 30]
-        init_mode = ["uniform", "lecun_uniform", "normal", "zero", "glorot_normal", "glorot_uniform", "he_normal",
-                     "he_uniform"]
-        # activation = ["softmax", "softplus", "softsign", "relu", "tanh", "sigmoid", "hard_sigmoid", "linear"]
-        activation = ["relu", "elu"]
-        # dropout_rate = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-        dropout_rate = [0.0, 0.1, 0.2]
+        batch_size = [10, 20, 40, 60, 80, 100]
+        epochs = [10, 50, 100]
+        kernel_initializer = ["uniform", "lecun_uniform", "normal", "zero", "glorot_normal", "glorot_uniform",
+                              "he_normal", "he_uniform"]
+        activation = ["softmax", "softplus", "softsign", "relu", "elu", "tanh", "sigmoid", "hard_sigmoid", "linear"]
+        rate = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
         optimizer = ["sgd", "rmsprop", "adagrad", "adadelta", "adam", "adamax", "nadam"]
-        param_grid["epochs"] = epochs
         param_grid["batch_size"] = batch_size
-        param_grid["init_mode"] = init_mode
+        param_grid["epochs"] = epochs
+        param_grid["kernel_initializer"] = kernel_initializer
         param_grid["activation"] = activation
-        param_grid["dropout_rate"] = dropout_rate
-        # param_grid["optimizer"] = optimizer
+        param_grid["rate"] = rate
+        param_grid["optimizer"] = optimizer
         return param_grid
 
     def find_best_estimator(self, estimator, param_grid, class_weight):
