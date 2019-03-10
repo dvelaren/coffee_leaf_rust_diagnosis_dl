@@ -65,7 +65,7 @@ class JsonSubModelGenerator:
     def create_model(self, kernel_initializer="normal", activation="relu", rate=0.0, optimizer="adam"):
         """Creates and compiles the model using the given hyperparameters."""
         model = Sequential()
-        model.add(Dense(units=1, kernel_initializer=kernel_initializer), input_shape=(6,))
+        model.add(Dense(units=12, kernel_initializer=kernel_initializer, input_shape=(6,)))
         model.add(Activation(activation=activation))
         model.add(Dropout(rate=rate))
         model.add(Dense(units=8, kernel_initializer=kernel_initializer))
@@ -79,8 +79,8 @@ class JsonSubModelGenerator:
     def get_param_grid(self):
         """Creates the hyperparameters grid for trying different combinations when training the model."""
         param_grid = dict()
-        batch_size = [10, 20, 40, 60, 80, 100]
-        epochs = [10, 50, 100]
+        batch_size = [16]
+        epochs = [1]
         kernel_initializer = ["uniform", "lecun_uniform", "normal", "zero", "glorot_normal", "glorot_uniform",
                               "he_normal", "he_uniform"]
         activation = ["softmax", "softplus", "softsign", "relu", "elu", "tanh", "sigmoid", "hard_sigmoid", "linear"]
@@ -88,10 +88,10 @@ class JsonSubModelGenerator:
         optimizer = ["sgd", "rmsprop", "adagrad", "adadelta", "adam", "adamax", "nadam"]
         param_grid["batch_size"] = batch_size
         param_grid["epochs"] = epochs
-        param_grid["kernel_initializer"] = kernel_initializer
-        param_grid["activation"] = activation
-        param_grid["rate"] = rate
-        param_grid["optimizer"] = optimizer
+        # param_grid["kernel_initializer"] = kernel_initializer
+        # param_grid["activation"] = activation
+        # param_grid["rate"] = rate
+        # param_grid["optimizer"] = optimizer
         return param_grid
 
     def find_best_estimator(self, estimator, param_grid, class_weight):

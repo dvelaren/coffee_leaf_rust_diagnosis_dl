@@ -80,7 +80,7 @@ class ReSubModelGenerator:
         model.add(Dense(units=128, kernel_initializer=kernel_initializer))
         model.add(Activation(activation=activation))
         model.add(Dropout(rate=rate))
-        model.add(Dense(units=5, kernel_initializer=kernel_initializer))
+        model.add(Dense(units=4, kernel_initializer=kernel_initializer))
         model.add(Activation(activation="softmax"))
         model.compile(optimizer=optimizer, loss="sparse_categorical_crossentropy", metrics=["accuracy"])
         return model
