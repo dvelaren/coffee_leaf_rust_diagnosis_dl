@@ -69,7 +69,7 @@ class RgbSubModelGenerator:
         model.add(Dropout(rate=rate))
         model.add(Flatten())
         model.add(Dense(units=128, kernel_initializer=kernel_initializer))
-        model.add(Activation(activation="relu"))
+        model.add(Activation(activation=activation))
         model.add(Dropout(rate=rate))
         model.add(Dense(units=5, kernel_initializer=kernel_initializer))
         model.add(Activation(activation="softmax"))
