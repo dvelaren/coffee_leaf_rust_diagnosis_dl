@@ -1,4 +1,4 @@
-# Prepocessing code
+# Evaluation code
 
 This part of project is focused on the evaluation and prediction of a test set using models trained on tensorflow keras.
 
