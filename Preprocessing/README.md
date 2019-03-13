@@ -13,7 +13,7 @@ Usage:
 
  - python3.6 createStructure.py -fp --folder where is the data, where are the coffee leaf rust development stage folders 
 
- Output: This code create 4 folders name "(type)_data" into -fp folder path 
+ Output: This code creates 4 folders name "(type)_data" into -fp folder path 
 
 Functions table:
 
@@ -32,7 +32,7 @@ Usage:
 
  - python3.6 rustCode.py -fp --folder where is the four target folders 
 
- Output: This code overwrite the files of the four target folders replacing the old files with new cleaning files.
+ Output: This code overwrites the files of the four target folders replacing the old files with new cleaning files.
 
 Functions table:
 
