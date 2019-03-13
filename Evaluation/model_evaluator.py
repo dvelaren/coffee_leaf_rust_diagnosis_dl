@@ -13,7 +13,7 @@ from sklearn.metrics import f1_score
 from distutils.dir_util import copy_tree
 import sys
 import numpy as np
-from keras import models as km
+from tensorflow.keras import models as km
 sys.path.append('..')
 from Model.json_data_structurer import JsonDataStructurer
 from Model.rgb_data_structurer import RgbDataStructurer
@@ -24,9 +24,9 @@ from Preprocessing.preProcessing import preprocessData
 # Creates a argumenter parser to handle the script parameters
 parser = argparse.ArgumentParser()
 parser.add_argument("-fp", "--fp", help="Folder where is the data")
-parser.add_argument("-dn", "--dn", help="The name of the new folder where is going to be the data")
+parser.add_argument("-jpfn", "--jpfn", help="The name of the new folder where is going to be the data")
 parser.add_argument("-dp", "--dp", help="The detector path")
-parser.add_argument("-smf", "--smf", help="path where are the four models")
+parser.add_argument("-smd", "--smd", help="path where are the four models")
 args = parser.parse_args()
 
 
@@ -40,12 +40,12 @@ class modelEvaluator:
 			self.rgb_data_structurer = RgbDataStructurer()
 			self.re_data_structurer = ReDataStructurer()
 			self.rgn_data_structurer = RgnDataStructurer()
-			self.json_data_scaler = self.json_data_structurer.load_json_data_scaler(args.dn)
+			self.json_data_scaler = self.json_data_structurer.load_json_data_scaler(args.jpfn)
 			self.preprocess_data = preprocessData('',args.dp)
-			self.json_sub_model = km.load_model(args.smf + '/' + 'json_sub_model.h5')
-			self.rgb_sub_model = km.load_model(args.smf + '/' + 'rgb_sub_model.h5')
-			self.re_sub_model = km.load_model(args.smf + '/' + 're_sub_model.h5')
-			self.rgn_sub_model = km.load_model(args.smf + '/' + 'rgn_sub_model.h5')
+			self.json_sub_model = km.load_model(args.smd + '/' + 'json_sub_model.h5')
+			self.rgb_sub_model = km.load_model(args.smd + '/' + 'rgb_sub_model.h5')
+			self.re_sub_model = km.load_model(args.smd + '/' + 're_sub_model.h5')
+			self.rgn_sub_model = km.load_model(args.smd + '/' + 'rgn_sub_model.h5')
 
 
 
@@ -122,10 +122,10 @@ class modelEvaluator:
 		json_array = json_array.reshape(1, -1)
 		json_data_scaled = self.json_data_structurer.scale_feature_data(json_array, self.json_data_scaler)
 
-		#json_data_scaled = json_data_scaled.reshape(-1)
-
 		# Predicts what is the label
 		json_results = self.json_sub_model.predict(json_data_scaled)
+		print("json model predictions")
+		print(json_results)
 		
 		# Finds the max value index
 		prediction_index = np.argmax(json_results)
@@ -135,10 +135,10 @@ class modelEvaluator:
 		if prediction_index == 1:
 			prediction_index = 2
 
-		if prediction_index == 2:
+		elif prediction_index == 2:
 			prediction_index = 3
 
-		if prediction_index == 3:
+		elif prediction_index == 3:
 			prediction_index = 4
 		
 		return prediction_index		
@@ -190,6 +190,8 @@ class modelEvaluator:
 
 			# Appends the result to the general list
 			rgb_results.append(prediction_index)
+			print("rgb model predictions")
+			print(rgb_result)
 			print("name plant")
 			print(str(rgb))
 			print("prediction")
@@ -201,9 +203,9 @@ class modelEvaluator:
 		final_prediction = sum(rgb_results)/ len(rgb_results)
 
 		# Rounds the average
-		final_prediction = round(final_prediction)
+		final_prediction = self.round_number(final_prediction)
 
-		return final_prediction
+		return int(final_prediction)
 
 	def get_re_predict(self, data_path):
 
@@ -240,7 +242,8 @@ class modelEvaluator:
 
 		# Gets the prediction 
 		re_result = self.re_sub_model.predict(re_expand)
-
+		print("re model predictions")
+		print(re_result)
 		# Finds the max value index
 		prediction_index = np.argmax(re_result)
 
@@ -248,10 +251,10 @@ class modelEvaluator:
 		if prediction_index == 1:
 			prediction_index = 2
 
-		if prediction_index == 2:
+		elif prediction_index == 2:
 			prediction_index = 3
 
-		if prediction_index == 3:
+		elif prediction_index == 3:
 			prediction_index = 4
 
 
@@ -289,7 +292,8 @@ class modelEvaluator:
 
 		# Gets the prediction 
 		rgn_result = self.rgn_sub_model.predict(rgn_expand)
-
+		print("rgn model predictions")
+		print(rgn_result)
 		# Finds the max value index
 		prediction_index = np.argmax(rgn_result)
 
@@ -297,13 +301,21 @@ class modelEvaluator:
 		if prediction_index == 1:
 			prediction_index = 2
 
-		if prediction_index == 2:
+		elif prediction_index == 2:
 			prediction_index = 3
 
-		if prediction_index == 3:
+		elif prediction_index == 3:
 			prediction_index = 4
 
 		return int(prediction_index)
+    
+	def round_number(self, number):
+		int_number = int(number)
+		if (number - 0.5) < int_number:
+			rounded_number = int_number
+		else:
+			rounded_number = int_number + 1
+		return rounded_number
 
 	def run(self):
 		"""
@@ -348,7 +360,7 @@ class modelEvaluator:
 				rgn_prediction = self.get_rgn_predict(rgn)
 
 				# Inserts the predictions into a list
-				list_prediction = [json_prediction ,rgb_prediction, re_prediction, rgn_prediction]
+				list_prediction = [json_prediction, rgb_prediction, re_prediction, rgn_prediction]
                 
 				# Appends to each list the prediction type value
 				list_json_results.append([int(label_directory) , int(json_prediction)])
@@ -364,7 +376,7 @@ class modelEvaluator:
 				final_prediction = sum(list_prediction)/ len(list_prediction)
 
 				# Rounds the average
-				final_prediction = round(final_prediction)
+				final_prediction = self.round_number(final_prediction)
 				print(final_prediction)
 
 				# Splits the lot directory
