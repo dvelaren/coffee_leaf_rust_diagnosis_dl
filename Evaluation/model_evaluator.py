@@ -313,8 +313,18 @@ class modelEvaluator:
 		# Gets an ordered dictionary of the lots folders
 		lot_dirs_g = self.get_lot_dirs_by_label_directory(data_path=args.fp)
 		
-		# Object for find types
+		# List where is going to be all the final results
 		list_of_results = []
+
+		# Lists where is going to be the results of each type
+		list_json_results = []
+
+		list_rgn_results = []
+
+		list_re_results = []
+
+		list_rgb_results = []
+
 		
 		# Iterates over the all label directories 
 		for label_directory, lot_dirs in lot_dirs_g.items():
@@ -340,6 +350,15 @@ class modelEvaluator:
 				# Inserts the predictions into a list
 				list_prediction = [json_prediction ,rgb_prediction, re_prediction, rgn_prediction]
                 
+				# Appends to each list the prediction type value
+				list_json_results.append([int(label_directory) , int(json_prediction)])
+
+				list_rgn_results.append([int(label_directory) , int(rgn_prediction)])
+
+				list_re_results.append([int(label_directory) , int(re_prediction)])
+
+				list_rgb_results.append([int(label_directory) , int(rgb_prediction)])
+
 				print(json_prediction , rgn_prediction, re_prediction, rgb_prediction)
 				# Gets the average of the four predictions
 				final_prediction = sum(list_prediction)/ len(list_prediction)
@@ -364,11 +383,95 @@ class modelEvaluator:
 				print("=========================================================")
 
 				# Appends to the results list
-				list_of_results.append([id_lot,int(label_directory),int(final_prediction)])
+				list_of_results.append([str(id_lot),int(label_directory),int(final_prediction)])
 
 
 
-		random.shuffle(list_of_results)
+		
+
+		#==========================================================================
+		# Gets the f1 score for json predictions
+		#==========================================================================
+		# Gets only the visual inspection data and put them into a list
+		labels_json = [i[0] for i in list_json_results]
+
+		# Gets only the prediction data and put them into a list
+		predictions_json = [i[1] for i in list_json_results]
+		print(labels_json)
+		print(predictions_json)
+		
+		# Gets the f1 score
+		f1_score_result_json = f1_score(labels_json, predictions_json, average='weighted')  
+
+		print("json f1 score")
+		print(f1_score_result_json)
+		#==========================================================================
+
+		#==========================================================================
+		# Gets the f1 score for rgn predictions
+		#==========================================================================
+		
+		# Gets only the visual inspection data and put them into a list
+		labels_rgn = [i[0] for i in list_rgn_results]
+
+		# Gets only the prediction data and put them into a list
+		predictions_rgn = [i[1] for i in list_rgn_results]
+		print(labels_rgn)
+		print(predictions_rgn)
+		
+		# Gets the f1 score
+		f1_score_result_rgn = f1_score(labels_rgn, predictions_rgn, average='weighted')  
+
+		print("rgn f1 score")
+		print(f1_score_result_rgn)
+
+
+		#==========================================================================
+
+		#==========================================================================
+		# Gets the f1 score for re predictions
+		#==========================================================================
+		
+		# Gets only the visual inspection data and put them into a list
+		labels_re = [i[0] for i in list_re_results]
+
+		# Gets only the prediction data and put them into a list
+		predictions_re = [i[1] for i in list_re_results]
+		print(labels_re)
+		print(predictions_re)
+		
+		# Gets the f1 score
+		f1_score_result_re = f1_score(labels_re, predictions_re, average='weighted')  
+
+		print("re f1 score")
+		print(f1_score_result_re)
+
+
+		#==========================================================================
+
+		#==========================================================================
+		# Gets the f1 score for rgb predictions
+		#==========================================================================
+		
+		# Gets only the visual inspection data and put them into a list
+		labels_rgb = [i[0] for i in list_rgb_results]
+
+		# Gets only the prediction data and put them into a list
+		predictions_rgb = [i[1] for i in list_rgb_results]
+		print(labels_rgb)
+		print(predictions_rgb)
+		
+		# Gets the f1 score
+		f1_score_result_rgb = f1_score(labels_rgb, predictions_rgb, average='weighted')  
+
+		print("rgb f1 score")
+		print(f1_score_result_rgb)
+
+		#==========================================================================
+
+		#==========================================================================
+		# Gets the f1 score for the final predictions
+		#==========================================================================
 
 		# Gets only the visual inspection data and put them into a list
 		labels = [i[1] for i in list_of_results]
@@ -381,8 +484,11 @@ class modelEvaluator:
 		# Gets the f1 score
 		f1_score_result = f1_score(labels, predictions, average='weighted')  
 
+		print("final f1 score")
 		print(f1_score_result)
 
+		#==========================================================================
+		random.shuffle(list_of_results)
 		# Split the folder path
 		csv_folder_path =  '/'.join((args.fp).split('/')[:-2])
 
