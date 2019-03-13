@@ -15,9 +15,13 @@ Usage:
  - python3.6 model_evaluator.py 
 
  arguments:
+ 
  fp --Folder where are the test set data
+
  jpfn --Directory where is the json pickle file
+
  dp --Directory where is the predictor (The predictor is on GitHub, into Preprocessing/detectors and the final predictor that must be used is detector_plants_v5_C150.svm )
+
  smd --Directory where is the folder which contains the submodels
 
  Example: python3.6 model_evaluator.py -fp ../../../test_predictions/ -jpfn ../../../results/json_data.pickle -dp ../Preprocessing/detectors/detector_plants_v5_C150.svm smd ../../../sub_models/
