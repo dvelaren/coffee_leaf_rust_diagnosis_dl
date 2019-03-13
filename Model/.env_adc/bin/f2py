@@ -1,4 +1,4 @@
-#!/home/asanch41/Documents/coffee_leaf_rust_diagnosis_dl/Model/.env_adc/bin/python3.6
+#!/home/asanch41/Documents/coffee_leaf_rust_diagnosis_dl/Model/.env_adc/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys
