@@ -1,9 +1,9 @@
 import os
 
 import numpy as np
-from keras.layers import Dense, Activation, Dropout, Conv2D, MaxPooling2D, Flatten
-from keras.models import Sequential
-from keras.wrappers.scikit_learn import KerasClassifier
+from tensorflow.keras.layers import Dense, Activation, Dropout, Conv2D, MaxPooling2D, Flatten, BatchNormalization
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
 from six.moves import cPickle as pickle
 from sklearn.model_selection import GridSearchCV
 
@@ -71,16 +71,20 @@ class RgnSubModelGenerator:
         model = Sequential()
         model.add(Conv2D(filters=32, kernel_size=kernel_size, kernel_initializer=kernel_initializer,
                          input_shape=(self.FRAME_HEIGHT, self.FRAME_WIDTH, 3)))
+        model.add(BatchNormalization())
         model.add(Activation(activation=activation))
         model.add(Conv2D(filters=64, kernel_size=kernel_size, kernel_initializer=kernel_initializer))
+        model.add(BatchNormalization())
         model.add(Activation(activation=activation))
         model.add(MaxPooling2D(pool_size=pool_size))
         model.add(Dropout(rate=rate))
         model.add(Flatten())
         model.add(Dense(units=128, kernel_initializer=kernel_initializer))
+        model.add(BatchNormalization())
         model.add(Activation(activation=activation))
         model.add(Dropout(rate=rate))
         model.add(Dense(units=4, kernel_initializer=kernel_initializer))
+        model.add(BatchNormalization())
         model.add(Activation(activation="softmax"))
         model.compile(optimizer=optimizer, loss="sparse_categorical_crossentropy", metrics=["accuracy"])
         return model
@@ -112,7 +116,7 @@ class RgnSubModelGenerator:
         Executes every combination of the given hyperparameters grid on the given estimator and returns the estimator
         that achieved the best performance.
         """
-        grid_search_cv = GridSearchCV(estimator=estimator, param_grid=param_grid, scoring="f1_weighted", n_jobs=-1)
+        grid_search_cv = GridSearchCV(estimator=estimator, param_grid=param_grid, scoring="f1_weighted", n_jobs=1)
         grid_search_cv_result = grid_search_cv.fit(X=self.feature_data, y=self.label_data, class_weight=class_weight)
         print("Best estimator's score: {}".format(str(grid_search_cv_result.best_score_)))
         print("Hyperparameters used: {}".format(grid_search_cv_result.best_params_))

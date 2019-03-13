@@ -1,9 +1,9 @@
 import os
 
 import numpy as np
-from keras.layers import Dense, Activation, Dropout
-from keras.models import Sequential
-from keras.wrappers.scikit_learn import KerasClassifier
+from tensorflow.keras.layers import Dense, Activation, Dropout, BatchNormalization
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
 from six.moves import cPickle as pickle
 from sklearn.model_selection import GridSearchCV
 
@@ -66,12 +66,15 @@ class JsonSubModelGenerator:
         """Creates and compiles the model using the given hyperparameters."""
         model = Sequential()
         model.add(Dense(units=12, kernel_initializer=kernel_initializer, input_shape=(6,)))
+        model.add(BatchNormalization())
         model.add(Activation(activation=activation))
         model.add(Dropout(rate=rate))
         model.add(Dense(units=8, kernel_initializer=kernel_initializer))
+        model.add(BatchNormalization())
         model.add(Activation(activation=activation))
         model.add(Dropout(rate=rate))
         model.add(Dense(units=4, kernel_initializer=kernel_initializer))
+        model.add(BatchNormalization())
         model.add(Activation(activation="softmax"))
         model.compile(optimizer=optimizer, loss="sparse_categorical_crossentropy", metrics=["accuracy"])
         return model
@@ -79,19 +82,18 @@ class JsonSubModelGenerator:
     def get_param_grid(self):
         """Creates the hyperparameters grid for trying different combinations when training the model."""
         param_grid = dict()
-        batch_size = [16]
+        batch_size = [32]
         epochs = [1]
-        kernel_initializer = ["uniform", "lecun_uniform", "normal", "zero", "glorot_normal", "glorot_uniform",
-                              "he_normal", "he_uniform"]
-        activation = ["softmax", "softplus", "softsign", "relu", "elu", "tanh", "sigmoid", "hard_sigmoid", "linear"]
-        rate = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-        optimizer = ["sgd", "rmsprop", "adagrad", "adadelta", "adam", "adamax", "nadam"]
+        kernel_initializer = ["normal", "glorot_uniform"]
+        activation = ["relu", "elu"]
+        rate = [0.0, 0.1, 0.2, 0.3, 0.4]
+        optimizer = ["adam"]
         param_grid["batch_size"] = batch_size
         param_grid["epochs"] = epochs
-        # param_grid["kernel_initializer"] = kernel_initializer
-        # param_grid["activation"] = activation
-        # param_grid["rate"] = rate
-        # param_grid["optimizer"] = optimizer
+        param_grid["kernel_initializer"] = kernel_initializer
+        param_grid["activation"] = activation
+        param_grid["rate"] = rate
+        param_grid["optimizer"] = optimizer
         return param_grid
 
     def find_best_estimator(self, estimator, param_grid, class_weight):
@@ -99,7 +101,7 @@ class JsonSubModelGenerator:
         Executes every combination of the given hyperparameters grid on the given estimator and returns the estimator
         that achieved the best performance.
         """
-        grid_search_cv = GridSearchCV(estimator=estimator, param_grid=param_grid, scoring="f1_weighted", n_jobs=-1)
+        grid_search_cv = GridSearchCV(estimator=estimator, param_grid=param_grid, scoring="f1_weighted", n_jobs=1)
         grid_search_cv_result = grid_search_cv.fit(X=self.feature_data, y=self.label_data, class_weight=class_weight)
         print("Best estimator's score: {}".format(str(grid_search_cv_result.best_score_)))
         print("Hyperparameters used: {}".format(grid_search_cv_result.best_params_))
