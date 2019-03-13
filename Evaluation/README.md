@@ -15,7 +15,7 @@ Usage:
  - python3.6 model_evaluator.py 
 
  arguments:
- 
+
  fp --Folder where are the test set data
 
  jpfn --Directory where is the json pickle file
@@ -31,7 +31,7 @@ Usage:
 
 Functions table:
 
-                                     createStructure.py
+                                     model_evaluator.py
 |Function       |     Input parameters    |                 Return values                        |
 |---------------|--------------------------|-----------------------------------------------------|
 |findTypes      |     folder(Str)       | re(list),rgn(list),rgb(list),json(list),other(list)    |
