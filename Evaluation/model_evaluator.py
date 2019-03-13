@@ -162,7 +162,7 @@ class modelEvaluator:
 
 			#==========================================================================
 			# During the process of cleaning the training set data we saved the images and
-			# to give warranty that the testing set data takes the same process we save the 
+			# to give warranty that the testing set data takes the same process we'll save the 
 			# image and reload it
 			#==========================================================================
 
@@ -190,8 +190,13 @@ class modelEvaluator:
 
 			# Appends the result to the general list
 			rgb_results.append(prediction_index)
+			print("name plant")
+			print(str(rgb))
+			print("prediction")
+			print(prediction_index)
 
-
+		print("rgb_results")
+		print(rgb_results)
 		# Gets the average 
 		final_prediction = sum(rgb_results)/ len(rgb_results)
 
@@ -264,7 +269,7 @@ class modelEvaluator:
 
 		#==========================================================================
 		# During the process of cleaning the training set data we saved the images and
-		# to give warranty that the testing set data takes the same process we save the 
+		# to give warranty that the testing set data takes the same process we'll save the 
 		# image and reload it
 		#==========================================================================
 		# Save the image in a temp file
@@ -334,7 +339,8 @@ class modelEvaluator:
 
 				# Inserts the predictions into a list
 				list_prediction = [json_prediction ,rgb_prediction, re_prediction, rgn_prediction]
-
+                
+				print(json_prediction , rgn_prediction, re_prediction, rgb_prediction)
 				# Gets the average of the four predictions
 				final_prediction = sum(list_prediction)/ len(list_prediction)
 
@@ -350,10 +356,12 @@ class modelEvaluator:
 
 				# Sets the id lot 
 				id_lot = str(label_directory) + number_lot_directory
-
+				print("lot_directory" + str(lot_directory))
 				print("final_prediction " + str(final_prediction))
 				print("idlot " + str(id_lot))
 				print("true_prediction " + str(label_directory))
+				
+				print("=========================================================")
 
 				# Appends to the results list
 				list_of_results.append([id_lot,int(label_directory),int(final_prediction)])
