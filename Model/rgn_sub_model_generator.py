@@ -92,20 +92,19 @@ class RgnSubModelGenerator:
     def get_param_grid(self):
         """Creates the hyperparameters grid for trying different combinations when training the model."""
         param_grid = dict()
-        batch_size = [16]
-        epochs = [1]
+        batch_size = [64]
+        epochs = [10]
         kernel_size = [(3, 3), (5, 5)]
-        kernel_initializer = ["uniform", "lecun_uniform", "normal", "zero", "glorot_normal", "glorot_uniform",
-                              "he_normal", "he_uniform"]
-        activation = ["softmax", "softplus", "softsign", "relu", "elu", "tanh", "sigmoid", "hard_sigmoid", "linear"]
+        kernel_initializer = ["normal", "glorot_uniform"]
+        activation = ["relu", "elu"]
         pool_size = [(2, 2)]
-        rate = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-        optimizer = ["sgd", "rmsprop", "adagrad", "adadelta", "adam", "adamax", "nadam"]
+        rate = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
+        optimizer = ["adam"]
         param_grid["batch_size"] = batch_size
         param_grid["epochs"] = epochs
         # param_grid["kernel_size"] = kernel_size
-        # param_grid["kernel_initializer"] = kernel_initializer
-        # param_grid["activation"] = activation
+        param_grid["kernel_initializer"] = kernel_initializer
+        param_grid["activation"] = activation
         # param_grid["pool_size"] = pool_size
         # param_grid["rate"] = rate
         # param_grid["optimizer"] = optimizer

@@ -65,16 +65,18 @@ class JsonSubModelGenerator:
     def create_model(self, kernel_initializer="normal", activation="relu", rate=0.0, optimizer="adam"):
         """Creates and compiles the model using the given hyperparameters."""
         model = Sequential()
-        model.add(Dense(units=12, kernel_initializer=kernel_initializer, input_shape=(6,)))
+        model.add(Dense(units=16, kernel_initializer=kernel_initializer, input_shape=(6,)))
+        model.add(BatchNormalization())
+        model.add(Activation(activation=activation))
+        model.add(Dense(units=64, kernel_initializer=kernel_initializer))
         model.add(BatchNormalization())
         model.add(Activation(activation=activation))
         model.add(Dropout(rate=rate))
-        model.add(Dense(units=8, kernel_initializer=kernel_initializer))
+        model.add(Dense(units=32, kernel_initializer=kernel_initializer))
         model.add(BatchNormalization())
         model.add(Activation(activation=activation))
         model.add(Dropout(rate=rate))
         model.add(Dense(units=4, kernel_initializer=kernel_initializer))
-        model.add(BatchNormalization())
         model.add(Activation(activation="softmax"))
         model.compile(optimizer=optimizer, loss="sparse_categorical_crossentropy", metrics=["accuracy"])
         return model
@@ -82,8 +84,8 @@ class JsonSubModelGenerator:
     def get_param_grid(self):
         """Creates the hyperparameters grid for trying different combinations when training the model."""
         param_grid = dict()
-        batch_size = [32]
-        epochs = [1]
+        batch_size = [16, 32, 64]
+        epochs = [5, 10, 15]
         kernel_initializer = ["normal", "glorot_uniform"]
         activation = ["relu", "elu"]
         rate = [0.0, 0.1, 0.2, 0.3, 0.4]
