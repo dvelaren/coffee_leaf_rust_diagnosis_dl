@@ -20,13 +20,15 @@ from Model.rgb_data_structurer import RgbDataStructurer
 from Model.re_data_structurer import ReDataStructurer
 from Model.rgn_data_structurer import RgnDataStructurer
 from Preprocessing.preProcessing import preprocessData
+import warnings
+warnings.filterwarnings('ignore')
 
 # Creates a argumenter parser to handle the script parameters
 parser = argparse.ArgumentParser()
-parser.add_argument("-fp", "--fp", help="Folder where is the data")
-parser.add_argument("-jpfn", "--jpfn", help="The name of the new folder where is going to be the data")
-parser.add_argument("-dp", "--dp", help="The detector path")
-parser.add_argument("-smd", "--smd", help="path where are the four models")
+parser.add_argument("-fp", "--fp", help="Folder where is the test set data")
+parser.add_argument("-jpfn", "--jpfn", help="Directory where is the json pickle file")
+parser.add_argument("-dp", "--dp", help="--Directory where is the predictor (The predictor is on GitHub, into Preprocessing/detectors and the final predictor that must be used is detector_plants_v5_C150.svm ")
+parser.add_argument("-smd", "--smd", help="Directory where is the folder which contains the submodels")
 args = parser.parse_args()
 
 
@@ -42,6 +44,7 @@ class modelEvaluator:
 			self.rgn_data_structurer = RgnDataStructurer()
 			self.json_data_scaler = self.json_data_structurer.load_json_data_scaler(args.jpfn)
 			self.preprocess_data = preprocessData('',args.dp)
+			print("Loading models ...")
 			self.json_sub_model = km.load_model(args.smd + '/' + 'json_sub_model.h5')
 			self.rgb_sub_model = km.load_model(args.smd + '/' + 'rgb_sub_model.h5')
 			self.re_sub_model = km.load_model(args.smd + '/' + 're_sub_model.h5')
@@ -124,8 +127,7 @@ class modelEvaluator:
 
 		# Predicts what is the label
 		json_results = self.json_sub_model.predict(json_data_scaled)
-		print("json model predictions")
-		print(json_results)
+
 		
 		# Finds the max value index
 		prediction_index = np.argmax(json_results)
@@ -141,7 +143,7 @@ class modelEvaluator:
 		elif prediction_index == 3:
 			prediction_index = 4
 		
-		return prediction_index		
+		return int(prediction_index)
 
 
 	def get_rgb_predict(self, list_data_path):
@@ -190,15 +192,7 @@ class modelEvaluator:
 
 			# Appends the result to the general list
 			rgb_results.append(prediction_index)
-			print("rgb model predictions")
-			print(rgb_result)
-			print("name plant")
-			print(str(rgb))
-			print("prediction")
-			print(prediction_index)
-
-		print("rgb_results")
-		print(rgb_results)
+		
 		# Gets the average 
 		final_prediction = sum(rgb_results)/ len(rgb_results)
 
@@ -242,8 +236,7 @@ class modelEvaluator:
 
 		# Gets the prediction 
 		re_result = self.re_sub_model.predict(re_expand)
-		print("re model predictions")
-		print(re_result)
+
 		# Finds the max value index
 		prediction_index = np.argmax(re_result)
 
@@ -292,8 +285,7 @@ class modelEvaluator:
 
 		# Gets the prediction 
 		rgn_result = self.rgn_sub_model.predict(rgn_expand)
-		print("rgn model predictions")
-		print(rgn_result)
+
 		# Finds the max value index
 		prediction_index = np.argmax(rgn_result)
 
@@ -337,7 +329,7 @@ class modelEvaluator:
 
 		list_rgb_results = []
 
-		
+		print("Cleaning and predicting the files ...")
 		# Iterates over the all label directories 
 		for label_directory, lot_dirs in lot_dirs_g.items():
 			
@@ -371,14 +363,12 @@ class modelEvaluator:
 
 				list_rgb_results.append([int(label_directory) , int(rgb_prediction)])
 
-				print(json_prediction , rgn_prediction, re_prediction, rgb_prediction)
 				# Gets the average of the four predictions
 				final_prediction = sum(list_prediction)/ len(list_prediction)
 
 				# Rounds the average
 				final_prediction = self.round_number(final_prediction)
-				print(final_prediction)
-
+			
 				# Splits the lot directory
 				list_lot_directory = lot_directory.split("/")
 
@@ -387,20 +377,12 @@ class modelEvaluator:
 
 				# Sets the id lot 
 				id_lot = str(label_directory) + number_lot_directory
-				print("lot_directory" + str(lot_directory))
-				print("final_prediction " + str(final_prediction))
-				print("idlot " + str(id_lot))
-				print("true_prediction " + str(label_directory))
-				
-				print("=========================================================")
 
 				# Appends to the results list
 				list_of_results.append([str(id_lot),int(label_directory),int(final_prediction)])
 
 
-
-		
-
+		print("Results: ")
 		#==========================================================================
 		# Gets the f1 score for json predictions
 		#==========================================================================
@@ -409,14 +391,11 @@ class modelEvaluator:
 
 		# Gets only the prediction data and put them into a list
 		predictions_json = [i[1] for i in list_json_results]
-		print(labels_json)
-		print(predictions_json)
 		
 		# Gets the f1 score
 		f1_score_result_json = f1_score(labels_json, predictions_json, average='weighted')  
 
-		print("json f1 score")
-		print(f1_score_result_json)
+		print("json sub-model f1-score: "+str(f1_score_result_json))
 		#==========================================================================
 
 		#==========================================================================
@@ -428,15 +407,11 @@ class modelEvaluator:
 
 		# Gets only the prediction data and put them into a list
 		predictions_rgn = [i[1] for i in list_rgn_results]
-		print(labels_rgn)
-		print(predictions_rgn)
 		
 		# Gets the f1 score
 		f1_score_result_rgn = f1_score(labels_rgn, predictions_rgn, average='weighted')  
 
-		print("rgn f1 score")
-		print(f1_score_result_rgn)
-
+		print("rgn sub-model f1-score: "+str(f1_score_result_rgn))
 
 		#==========================================================================
 
@@ -449,15 +424,11 @@ class modelEvaluator:
 
 		# Gets only the prediction data and put them into a list
 		predictions_re = [i[1] for i in list_re_results]
-		print(labels_re)
-		print(predictions_re)
 		
 		# Gets the f1 score
 		f1_score_result_re = f1_score(labels_re, predictions_re, average='weighted')  
 
-		print("re f1 score")
-		print(f1_score_result_re)
-
+		print("re sub-model f1-score: "+str(f1_score_result_re))
 
 		#==========================================================================
 
@@ -470,14 +441,11 @@ class modelEvaluator:
 
 		# Gets only the prediction data and put them into a list
 		predictions_rgb = [i[1] for i in list_rgb_results]
-		print(labels_rgb)
-		print(predictions_rgb)
 		
 		# Gets the f1 score
 		f1_score_result_rgb = f1_score(labels_rgb, predictions_rgb, average='weighted')  
 
-		print("rgb f1 score")
-		print(f1_score_result_rgb)
+		print("rgb sub-model f1-score: "+str(f1_score_result_rgb))
 
 		#==========================================================================
 
@@ -490,14 +458,11 @@ class modelEvaluator:
 
 		# Gets only the prediction data and put them into a list
 		predictions = [i[2] for i in list_of_results]
-		print(labels)
-		print(predictions)
 		
 		# Gets the f1 score
 		f1_score_result = f1_score(labels, predictions, average='weighted')  
-
-		print("final f1 score")
-		print(f1_score_result)
+		
+		print("general averaged f1-score: "+str(f1_score_result))
 
 		#==========================================================================
 		random.shuffle(list_of_results)
@@ -514,6 +479,11 @@ class modelEvaluator:
 
 		# Closes the csv file
 		csvFile.close()
+
+		# Removes the temporal image
+		os.remove('temp.jpg')
+
+		print("The model evaluation was successful and the result can be found in: "+ str(csv_folder_path + '/' +'results.csv'))
 
 me = modelEvaluator(args.fp)
 me.run()
