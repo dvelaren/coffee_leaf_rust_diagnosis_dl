@@ -6,6 +6,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
 from six.moves import cPickle as pickle
 from sklearn.model_selection import GridSearchCV, cross_validate
+from tensorflow.keras.backend import clear_session
 
 
 class JsonSubModelGenerator:
@@ -157,6 +158,8 @@ class JsonSubModelGenerator:
                                     best_estimator_index = np.argmax(cv_results["test_score"])
                                     # Selects the best estimator from the cross-validation results.
                                     best_estimator = cv_results["estimator"][best_estimator_index]
+                                # Frees GPU-memory.
+                                clear_session()
                                 tried_estimators += 1
                                 print("Current best estimator's score: {}".format(str(best_score)))
                                 print("Tried estimators = {}/{}.".format(tried_estimators, total_estimators))

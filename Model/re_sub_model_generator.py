@@ -6,6 +6,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
 from six.moves import cPickle as pickle
 from sklearn.model_selection import GridSearchCV, cross_validate
+from tensorflow.keras.backend import clear_session
 
 
 class ReSubModelGenerator:
@@ -132,7 +133,7 @@ class ReSubModelGenerator:
         best_score = 0.0
         best_hyperparameters = dict()
         best_estimator = None
-        batch_sizes = [16, 32, 64, 128]
+        batch_sizes = [16, 32, 64]
         epoch_list = [5, 10, 15, 20]
         kernel_sizes = [(3, 3), (5, 5)]
         kernel_initializers = ["glorot_uniform", "normal"]
@@ -176,8 +177,11 @@ class ReSubModelGenerator:
                                             best_estimator_index = np.argmax(cv_results["test_score"])
                                             # Selects the best estimator from the cross-validation results.
                                             best_estimator = cv_results["estimator"][best_estimator_index]
+                                        # Frees GPU-memory.
+                                        clear_session()
                                         tried_estimators += 1
                                         print("Current best estimator's score: {}".format(str(best_score)))
+                                        print("Current best hyperparameters: {}".format(best_hyperparameters))
                                         print("Tried estimators = {}/{}.".format(tried_estimators, total_estimators))
         print("Best estimator's score: {}".format(str(best_score)))
         print("Hyperparameters used: {}".format(best_hyperparameters))
