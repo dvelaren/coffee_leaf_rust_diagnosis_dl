@@ -5,7 +5,7 @@ from tensorflow.keras.layers import Dense, Activation, Dropout, BatchNormalizati
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
 from six.moves import cPickle as pickle
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import GridSearchCV, cross_validate
 
 
 class JsonSubModelGenerator:
@@ -23,9 +23,11 @@ class JsonSubModelGenerator:
         os.remove(json_sub_model_file_path) if os.path.exists(json_sub_model_file_path) else None
         self.load_data()
         class_weight = self.get_class_weight()
-        estimator = KerasClassifier(build_fn=self.create_model, verbose=0)
-        param_grid = self.get_param_grid()
-        best_estimator = self.find_best_estimator(estimator=estimator, param_grid=param_grid, class_weight=class_weight)
+        # estimator = KerasClassifier(build_fn=self.create_model, verbose=0)
+        # param_grid = self.get_param_grid()
+        # best_estimator = self.find_best_estimator(estimator=estimator, param_grid=param_grid,
+        # class_weight=class_weight)
+        best_estimator = self.find_best_estimator_2(class_weight=class_weight)
         # Saves the best estimator on the given path for using it at evaluation-time.
         best_estimator.model.save(json_sub_model_file_path)
         print("The json sub-model was successfully generated and the result can be found in {}."
@@ -106,3 +108,49 @@ class JsonSubModelGenerator:
         print("Best estimator's score: {}".format(str(grid_search_cv_result.best_score_)))
         print("Hyperparameters used: {}".format(grid_search_cv_result.best_params_))
         return grid_search_cv_result.best_estimator_
+
+    def find_best_estimator_2(self, class_weight):
+        """
+        Creates an estimator for every combination of pre-set hyperparameters and evaluate them with cross-validation in
+        order to return the estimator that achieved the best performance.
+        """
+        best_score = 0.0
+        best_hyperparameters = dict()
+        best_estimator = None
+        batch_sizes = [32, 64]
+        epoch_list = [1]
+        kernel_initializers = ["normal"]
+        activations = ["relu"]
+        rates = [0.0]
+        optimizers = ["adam"]
+        for batch_size in batch_sizes:
+            for epochs in epoch_list:
+                for kernel_initializer in kernel_initializers:
+                    for activation in activations:
+                        for rate in rates:
+                            for optimizer in optimizers:
+                                # Creates an estimator using one combination of hyperparameters.
+                                estimator = KerasClassifier(build_fn=self.create_model,
+                                                            kernel_initializer=kernel_initializer,
+                                                            activation=activation, rate=rate, optimizer=optimizer,
+                                                            verbose=0)
+                                fit_params = {"batch_size": batch_size, "epochs": epochs, "class_weight": class_weight}
+                                # Fits the estimator using the feature and label data and returns the result.
+                                cv_results = cross_validate(estimator=estimator, X=self.feature_data, y=self.label_data,
+                                                            scoring="f1_weighted", fit_params=fit_params,
+                                                            return_train_score=False, return_estimator=True)
+                                # Calculates the mean performance for the current estimator.
+                                test_score = np.mean(cv_results["test_score"])
+                                if test_score > best_score:
+                                    # Updates the best results, if necessary.
+                                    best_score = test_score
+                                    best_hyperparameters = {"batch_size": batch_size, "epochs": epochs,
+                                                            "kernel_initializer": kernel_initializer,
+                                                            "activation": activation, "rate": rate,
+                                                            "optimizer": optimizer}
+                                    best_estimator_index = np.argmax(cv_results["test_score"])
+                                    # Selects the best estimator from the cross-validation results.
+                                    best_estimator = cv_results["estimator"][best_estimator_index]
+        print("Best estimator's score: {}".format(str(best_score)))
+        print("Hyperparameters used: {}".format(best_hyperparameters))
+        return best_estimator
