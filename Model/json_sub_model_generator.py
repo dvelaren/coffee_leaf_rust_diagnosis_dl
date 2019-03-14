@@ -23,10 +23,11 @@ class JsonSubModelGenerator:
         os.remove(json_sub_model_file_path) if os.path.exists(json_sub_model_file_path) else None
         self.load_data()
         class_weight = self.get_class_weight()
-        # estimator = KerasClassifier(build_fn=self.create_model, verbose=0)
-        # param_grid = self.get_param_grid()
-        # best_estimator = self.find_best_estimator(estimator=estimator, param_grid=param_grid,
-        # class_weight=class_weight)
+        '''
+        estimator = KerasClassifier(build_fn=self.create_model, verbose=0)
+        param_grid = self.get_param_grid()
+        best_estimator = self.find_best_estimator(estimator=estimator, param_grid=param_grid, class_weight=class_weight)
+        '''
         best_estimator = self.find_best_estimator_2(class_weight=class_weight)
         # Saves the best estimator on the given path for using it at evaluation-time.
         best_estimator.model.save(json_sub_model_file_path)
@@ -119,10 +120,10 @@ class JsonSubModelGenerator:
         best_score = 0.0
         best_hyperparameters = dict()
         best_estimator = None
-        batch_sizes = [32, 64]
-        epoch_list = [1]
-        kernel_initializers = ["normal"]
-        activations = ["relu"]
+        batch_sizes = [16, 32, 64]
+        epoch_list = [5, 10, 15]
+        kernel_initializers = ["normal", "glorot_uniform"]
+        activations = ["relu", "elu"]
         rates = [0.0]
         optimizers = ["adam"]
         for batch_size in batch_sizes:
