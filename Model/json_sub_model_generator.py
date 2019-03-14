@@ -65,7 +65,7 @@ class JsonSubModelGenerator:
             class_weight[label] = float(max_occurrences / occurrences)
         return class_weight
 
-    def create_model(self, kernel_initializer="normal", activation="relu", rate=0.0, optimizer="adam"):
+    def create_model(self, kernel_initializer="glorot_uniform", activation="relu", rate=0.0, optimizer="adam"):
         """Creates and compiles the model using the given hyperparameters."""
         model = Sequential()
         model.add(Dense(units=16, kernel_initializer=kernel_initializer, input_shape=(6,)))
@@ -89,7 +89,7 @@ class JsonSubModelGenerator:
         param_grid = dict()
         batch_size = [16, 32, 64]
         epochs = [5, 10, 15]
-        kernel_initializer = ["normal", "glorot_uniform"]
+        kernel_initializer = ["glorot_uniform", "normal"]
         activation = ["relu", "elu"]
         rate = [0.0, 0.1, 0.2, 0.3, 0.4]
         optimizer = ["adam"]
@@ -122,10 +122,13 @@ class JsonSubModelGenerator:
         best_estimator = None
         batch_sizes = [16, 32, 64]
         epoch_list = [5, 10, 15]
-        kernel_initializers = ["normal", "glorot_uniform"]
+        kernel_initializers = ["glorot_uniform", "normal"]
         activations = ["relu", "elu"]
-        rates = [0.0]
+        rates = [0.0, 0.1, 0.2, 0.3, 0.4]
         optimizers = ["adam"]
+        total_estimators = len(batch_sizes) * len(epoch_list) * len(kernel_initializers) * len(activations) * \
+                           len(rates) * len(optimizers)
+        tried_estimators = 0
         for batch_size in batch_sizes:
             for epochs in epoch_list:
                 for kernel_initializer in kernel_initializers:
@@ -154,6 +157,9 @@ class JsonSubModelGenerator:
                                     best_estimator_index = np.argmax(cv_results["test_score"])
                                     # Selects the best estimator from the cross-validation results.
                                     best_estimator = cv_results["estimator"][best_estimator_index]
+                                tried_estimators += 1
+                                print("Current best estimator's score: {}".format(str(best_score)))
+                                print("Tried estimators = {}/{}.".format(tried_estimators, total_estimators))
         print("Best estimator's score: {}".format(str(best_score)))
         print("Hyperparameters used: {}".format(best_hyperparameters))
         return best_estimator
