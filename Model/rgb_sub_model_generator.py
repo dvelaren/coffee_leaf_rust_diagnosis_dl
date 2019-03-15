@@ -1,3 +1,4 @@
+import json
 import os
 
 import numpy as np
@@ -23,8 +24,10 @@ class RgbSubModelGenerator:
         """Generates a RGB sub-model and saves it in order to use it for the posterior assessment."""
         print("Generating rgb sub-model...")
         rgb_sub_model_file_path = os.path.join(self.destination_path, "rgb_sub_model.h5")
-        # Removes the rgb sub-model file, if it already exists.
+        rgb_sub_model_prop_file_path = os.path.join(self.destination_path, "rgb_sub_model_prop.json")
+        # Removes the rgb sub-model files, if they already exist.
         os.remove(rgb_sub_model_file_path) if os.path.exists(rgb_sub_model_file_path) else None
+        os.remove(rgb_sub_model_prop_file_path) if os.path.exists(rgb_sub_model_prop_file_path) else None
         self.load_data()
         class_weight = self.get_class_weight()
         '''
@@ -32,9 +35,10 @@ class RgbSubModelGenerator:
         param_grid = self.get_param_grid()
         best_estimator = self.find_best_estimator(estimator=estimator, param_grid=param_grid, class_weight=class_weight)
         '''
-        best_estimator = self.find_best_estimator_2(class_weight=class_weight)
+        self.find_best_estimator_2(class_weight=class_weight, rgb_sub_model_file_path=rgb_sub_model_file_path,
+                                   rgb_sub_model_prop_file_path=rgb_sub_model_prop_file_path)
         # Saves the best estimator on the given path for using it at evaluation-time.
-        best_estimator.model.save(rgb_sub_model_file_path)
+        # best_estimator.model.save(rgb_sub_model_file_path)
         print("The rgb sub-model was successfully generated and the result can be found in {}."
               .format(rgb_sub_model_file_path))
 
@@ -116,10 +120,10 @@ class RgbSubModelGenerator:
         print("Hyperparameters used: {}".format(grid_search_cv_result.best_params_))
         return grid_search_cv_result.best_estimator_
 
-    def find_best_estimator_2(self, class_weight):
+    def find_best_estimator_2(self, class_weight, rgb_sub_model_file_path, rgb_sub_model_prop_file_path):
         """
         Creates an estimator for every combination of pre-set hyperparameters and evaluate them with cross-validation in
-        order to return the estimator that achieved the best performance.
+        order to find and save the estimator that achieved the best performance.
         """
         best_score = 0.0
         best_hyperparameters = dict()
@@ -168,6 +172,23 @@ class RgbSubModelGenerator:
                                             best_estimator_index = np.argmax(cv_results["test_score"])
                                             # Selects the best estimator from the cross-validation results.
                                             best_estimator = cv_results["estimator"][best_estimator_index]
+                                            '''
+                                            Saves the best estimator (and its properties) for using it at
+                                            evaluation-time.
+                                            '''
+                                            if os.path.exists(rgb_sub_model_file_path):
+                                                os.remove(rgb_sub_model_file_path)
+                                            if os.path.exists(rgb_sub_model_prop_file_path):
+                                                os.remove(rgb_sub_model_prop_file_path)
+                                            try:
+                                                properties = best_hyperparameters.copy()
+                                                # Adds the score to the properties of the estimator.
+                                                properties["score"] = best_score
+                                                with open(rgb_sub_model_prop_file_path, "w") as outfile:
+                                                    json.dump(obj=properties, fp=outfile, indent=4)
+                                            except:
+                                                None
+                                            best_estimator.model.save(rgb_sub_model_file_path)
                                         # Frees GPU-memory.
                                         clear_session()
                                         tried_estimators += 1
@@ -175,4 +196,3 @@ class RgbSubModelGenerator:
                                         print("Tried estimators = {}/{}.".format(tried_estimators, total_estimators))
         print("Best estimator's score: {}".format(str(best_score)))
         print("Hyperparameters used: {}".format(best_hyperparameters))
-        return best_estimator
