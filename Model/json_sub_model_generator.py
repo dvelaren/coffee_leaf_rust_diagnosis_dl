@@ -83,7 +83,7 @@ class JsonSubModelGenerator:
         model.add(Dense(units=32, kernel_initializer=kernel_initializer))
         model.add(BatchNormalization())
         model.add(Activation(activation=activation))
-        model.add(Dropout(rate=rate))
+        model.add(Dropout(rate=rate / 2))
         model.add(Dense(units=4, kernel_initializer=kernel_initializer))
         model.add(Activation(activation="softmax"))
         model.compile(optimizer=optimizer, loss="sparse_categorical_crossentropy", metrics=["accuracy"])

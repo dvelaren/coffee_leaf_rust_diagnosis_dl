@@ -35,8 +35,11 @@ class RgnSubModelGenerator:
         param_grid = self.get_param_grid()
         best_estimator = self.find_best_estimator(estimator=estimator, param_grid=param_grid, class_weight=class_weight)
         '''
+        '''
         self.find_best_estimator_2(class_weight=class_weight, rgn_sub_model_file_path=rgn_sub_model_file_path,
                                    rgn_sub_model_prop_file_path=rgn_sub_model_prop_file_path)
+        '''
+        self.create_model()
         # Saves the best estimator on the given path for using it at evaluation-time.
         # best_estimator.model.save(rgn_sub_model_file_path)
         print("The rgn sub-model was successfully generated and the result can be found in {}."
@@ -73,28 +76,36 @@ class RgnSubModelGenerator:
             class_weight[label] = float(max_occurrences / occurrences)
         return class_weight
 
-    def create_model(self, kernel_size=(3, 3), kernel_initializer="glorot_uniform", activation="relu", pool_size=(2, 2),
-                     rate=0.0, optimizer="adam"):
+    def create_model(self, kernel_initializer="glorot_uniform", activation="relu", rate=0.0, optimizer="adam"):
         """Creates and compiles the model using the given hyperparameters."""
         model = Sequential()
-        model.add(Conv2D(filters=18, kernel_size=kernel_size, kernel_initializer=kernel_initializer,
+        model.add(Conv2D(filters=18, kernel_size=(5, 5), kernel_initializer=kernel_initializer,
                          input_shape=(self.FRAME_HEIGHT, self.FRAME_WIDTH, 3)))
         model.add(BatchNormalization())
         model.add(Activation(activation=activation))
-        model.add(Conv2D(filters=64, kernel_size=kernel_size, kernel_initializer=kernel_initializer))
+        model.add(MaxPooling2D(pool_size=(2, 2)))
+        model.add(Conv2D(filters=36, kernel_size=(5, 5), kernel_initializer=kernel_initializer))
         model.add(BatchNormalization())
         model.add(Activation(activation=activation))
-        model.add(MaxPooling2D(pool_size=pool_size))
+        model.add(MaxPooling2D(pool_size=(2, 2)))
+        model.add(Conv2D(filters=54, kernel_size=(3, 3), kernel_initializer=kernel_initializer))
+        model.add(BatchNormalization())
+        model.add(Activation(activation=activation))
+        model.add(MaxPooling2D(pool_size=(2, 2)))
         model.add(Dropout(rate=rate))
         model.add(Flatten())
+        model.add(Dense(units=512, kernel_initializer=kernel_initializer))
+        model.add(BatchNormalization())
+        model.add(Activation(activation=activation))
+        model.add(Dropout(rate=rate))
         model.add(Dense(units=128, kernel_initializer=kernel_initializer))
         model.add(BatchNormalization())
         model.add(Activation(activation=activation))
-        model.add(Dropout(rate=rate))
+        model.add(Dropout(rate=rate / 2))
         model.add(Dense(units=4, kernel_initializer=kernel_initializer))
-        model.add(BatchNormalization())
         model.add(Activation(activation="softmax"))
         model.compile(optimizer=optimizer, loss="sparse_categorical_crossentropy", metrics=["accuracy"])
+        print(model.summary())
         return model
 
     def get_param_grid(self):
@@ -102,18 +113,14 @@ class RgnSubModelGenerator:
         param_grid = dict()
         batch_size = [16, 32, 64, 128]
         epochs = [5, 10, 15, 20]
-        kernel_size = [(3, 3), (5, 5)]
         kernel_initializer = ["glorot_uniform", "normal"]
         activation = ["relu", "elu"]
-        pool_size = [(2, 2)]
         rate = [0.0, 0.1, 0.2, 0.3, 0.4]
         optimizer = ["adam"]
         param_grid["batch_size"] = batch_size
         param_grid["epochs"] = epochs
-        param_grid["kernel_size"] = kernel_size
         param_grid["kernel_initializer"] = kernel_initializer
         param_grid["activation"] = activation
-        param_grid["pool_size"] = pool_size
         param_grid["rate"] = rate
         param_grid["optimizer"] = optimizer
         return param_grid
@@ -137,72 +144,62 @@ class RgnSubModelGenerator:
         best_score = 0.0
         best_hyperparameters = dict()
         best_estimator = None
-        batch_sizes = [16, 32, 64, 128]
-        epoch_list = [5, 10, 15, 20]
-        kernel_sizes = [(3, 3), (5, 5)]
+        batch_sizes = [16, 32]
+        epoch_list = [3, 6, 9]
         kernel_initializers = ["glorot_uniform", "normal"]
         activations = ["relu", "elu"]
-        pool_sizes = [(2, 2)]
-        rates = [0.0, 0.1, 0.2, 0.3, 0.4]
+        rates = [0.3, 0.4, 0.5]
         optimizers = ["adam"]
-        total_estimators = len(batch_sizes) * len(epoch_list) * len(kernel_sizes) * len(kernel_initializers) * \
-                           len(activations) * len(pool_sizes) * len(rates) * len(optimizers)
+        total_estimators = len(batch_sizes) * len(epoch_list) * len(kernel_initializers) * len(activations) * \
+                           len(rates) * len(optimizers)
         tried_estimators = 0
         for batch_size in batch_sizes:
             for epochs in epoch_list:
-                for kernel_size in kernel_sizes:
-                    for kernel_initializer in kernel_initializers:
-                        for activation in activations:
-                            for pool_size in pool_sizes:
-                                for rate in rates:
-                                    for optimizer in optimizers:
-                                        # Creates an estimator using one combination of hyperparameters.
-                                        estimator = KerasClassifier(build_fn=self.create_model, kernel_size=kernel_size,
-                                                                    kernel_initializer=kernel_initializer,
-                                                                    activation=activation, pool_size=pool_size,
-                                                                    rate=rate, optimizer=optimizer, verbose=0)
-                                        fit_params = {"batch_size": batch_size, "epochs": epochs,
-                                                      "class_weight": class_weight}
-                                        # Fits the estimator using the feature and label data and returns the result.
-                                        cv_results = cross_validate(estimator=estimator, X=self.feature_data,
-                                                                    y=self.label_data, scoring="f1_weighted",
-                                                                    fit_params=fit_params, return_train_score=False,
-                                                                    return_estimator=True)
-                                        # Calculates the mean performance for the current estimator.
-                                        test_score = np.mean(cv_results["test_score"])
-                                        if test_score > best_score:
-                                            # Updates the best results, if necessary.
-                                            best_score = test_score
-                                            best_hyperparameters = {"batch_size": batch_size, "epochs": epochs,
-                                                                    "kernel_size": kernel_size,
-                                                                    "kernel_initializer": kernel_initializer,
-                                                                    "activation": activation, "pool_size": pool_size,
-                                                                    "rate": rate, "optimizer": optimizer}
-                                            best_estimator_index = np.argmax(cv_results["test_score"])
-                                            # Selects the best estimator from the cross-validation results.
-                                            best_estimator = cv_results["estimator"][best_estimator_index]
-                                            '''
-                                            Saves the best estimator (and its properties) for using it at
-                                            evaluation-time.
-                                            '''
-                                            if os.path.exists(rgn_sub_model_file_path):
-                                                os.remove(rgn_sub_model_file_path)
-                                            if os.path.exists(rgn_sub_model_prop_file_path):
-                                                os.remove(rgn_sub_model_prop_file_path)
-                                            try:
-                                                properties = best_hyperparameters.copy()
-                                                # Adds the score to the properties of the estimator.
-                                                properties["score"] = best_score
-                                                with open(rgn_sub_model_prop_file_path, "w") as outfile:
-                                                    json.dump(obj=properties, fp=outfile, indent=4)
-                                            except:
-                                                None
-                                            best_estimator.model.save(rgn_sub_model_file_path)
-                                        # Frees GPU-memory.
-                                        clear_session()
-                                        tried_estimators += 1
-                                        print("Current best estimator's score: {}".format(str(best_score)))
-                                        print("Current best hyperparameters: {}".format(best_hyperparameters))
-                                        print("Tried estimators = {}/{}.".format(tried_estimators, total_estimators))
+                for kernel_initializer in kernel_initializers:
+                    for activation in activations:
+                        for rate in rates:
+                            for optimizer in optimizers:
+                                # Creates an estimator using one combination of hyperparameters.
+                                estimator = KerasClassifier(build_fn=self.create_model,
+                                                            kernel_initializer=kernel_initializer,
+                                                            activation=activation, rate=rate, optimizer=optimizer,
+                                                            verbose=0)
+                                fit_params = {"batch_size": batch_size, "epochs": epochs, "class_weight": class_weight}
+                                # Fits the estimator using the feature and label data and returns the result.
+                                cv_results = cross_validate(estimator=estimator, X=self.feature_data, y=self.label_data,
+                                                            scoring="f1_weighted", fit_params=fit_params,
+                                                            return_train_score=False, return_estimator=True)
+                                # Calculates the mean performance for the current estimator.
+                                test_score = np.mean(cv_results["test_score"])
+                                if test_score > best_score:
+                                    # Updates the best results, if necessary.
+                                    best_score = test_score
+                                    best_hyperparameters = {"batch_size": batch_size, "epochs": epochs,
+                                                            "kernel_initializer": kernel_initializer,
+                                                            "activation": activation, "rate": rate,
+                                                            "optimizer": optimizer}
+                                    best_estimator_index = np.argmax(cv_results["test_score"])
+                                    # Selects the best estimator from the cross-validation results.
+                                    best_estimator = cv_results["estimator"][best_estimator_index]
+                                    # Saves the best estimator (and its properties) for using it at evaluation-time.
+                                    if os.path.exists(rgn_sub_model_file_path):
+                                        os.remove(rgn_sub_model_file_path)
+                                    if os.path.exists(rgn_sub_model_prop_file_path):
+                                        os.remove(rgn_sub_model_prop_file_path)
+                                    try:
+                                        properties = best_hyperparameters.copy()
+                                        # Adds the score to the properties of the estimator.
+                                        properties["score"] = best_score
+                                        with open(rgn_sub_model_prop_file_path, "w") as outfile:
+                                            json.dump(obj=properties, fp=outfile, indent=4)
+                                    except:
+                                        None
+                                    best_estimator.model.save(rgn_sub_model_file_path)
+                                # Frees GPU-memory.
+                                clear_session()
+                                tried_estimators += 1
+                                print("Current best estimator's score: {}".format(str(best_score)))
+                                print("Current best hyperparameters: {}".format(best_hyperparameters))
+                                print("Tried estimators = {}/{}.".format(tried_estimators, total_estimators))
         print("Best estimator's score: {}".format(str(best_score)))
         print("Hyperparameters used: {}".format(best_hyperparameters))
