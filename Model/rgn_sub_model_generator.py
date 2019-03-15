@@ -35,11 +35,9 @@ class RgnSubModelGenerator:
         param_grid = self.get_param_grid()
         best_estimator = self.find_best_estimator(estimator=estimator, param_grid=param_grid, class_weight=class_weight)
         '''
-        '''
         self.find_best_estimator_2(class_weight=class_weight, rgn_sub_model_file_path=rgn_sub_model_file_path,
                                    rgn_sub_model_prop_file_path=rgn_sub_model_prop_file_path)
-        '''
-        self.create_model()
+        
         # Saves the best estimator on the given path for using it at evaluation-time.
         # best_estimator.model.save(rgn_sub_model_file_path)
         print("The rgn sub-model was successfully generated and the result can be found in {}."
@@ -105,7 +103,6 @@ class RgnSubModelGenerator:
         model.add(Dense(units=4, kernel_initializer=kernel_initializer))
         model.add(Activation(activation="softmax"))
         model.compile(optimizer=optimizer, loss="sparse_categorical_crossentropy", metrics=["accuracy"])
-        print(model.summary())
         return model
 
     def get_param_grid(self):

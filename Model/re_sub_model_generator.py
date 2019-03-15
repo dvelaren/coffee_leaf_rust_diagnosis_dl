@@ -76,22 +76,30 @@ class ReSubModelGenerator:
     def create_model(self, kernel_initializer="glorot_uniform", activation="relu", rate=0.0, optimizer="adam"):
         """Creates and compiles the model using the given hyperparameters."""
         model = Sequential()
-        model.add(Conv2D(filters=32, kernel_size=(3, 3), kernel_initializer=kernel_initializer,
+        model.add(Conv2D(filters=18, kernel_size=(5, 5), kernel_initializer=kernel_initializer,
                          input_shape=(self.FRAME_HEIGHT, self.FRAME_WIDTH, 3)))
         model.add(BatchNormalization())
         model.add(Activation(activation=activation))
-        model.add(Conv2D(filters=64, kernel_size=(3, 3), kernel_initializer=kernel_initializer))
+        model.add(MaxPooling2D(pool_size=(2, 2)))
+        model.add(Conv2D(filters=36, kernel_size=(5, 5), kernel_initializer=kernel_initializer))
+        model.add(BatchNormalization())
+        model.add(Activation(activation=activation))
+        model.add(MaxPooling2D(pool_size=(2, 2)))
+        model.add(Conv2D(filters=54, kernel_size=(3, 3), kernel_initializer=kernel_initializer))
         model.add(BatchNormalization())
         model.add(Activation(activation=activation))
         model.add(MaxPooling2D(pool_size=(2, 2)))
         model.add(Dropout(rate=rate))
         model.add(Flatten())
-        model.add(Dense(units=128, kernel_initializer=kernel_initializer))
+        model.add(Dense(units=512, kernel_initializer=kernel_initializer))
         model.add(BatchNormalization())
         model.add(Activation(activation=activation))
         model.add(Dropout(rate=rate))
-        model.add(Dense(units=4, kernel_initializer=kernel_initializer))
+        model.add(Dense(units=128, kernel_initializer=kernel_initializer))
         model.add(BatchNormalization())
+        model.add(Activation(activation=activation))
+        model.add(Dropout(rate=rate / 2))
+        model.add(Dense(units=4, kernel_initializer=kernel_initializer))
         model.add(Activation(activation="softmax"))
         model.compile(optimizer=optimizer, loss="sparse_categorical_crossentropy", metrics=["accuracy"])
         return model
@@ -132,11 +140,11 @@ class ReSubModelGenerator:
         best_score = 0.0
         best_hyperparameters = dict()
         best_estimator = None
-        batch_sizes = [16, 32, 64]
-        epoch_list = [5, 10, 15, 20]
+        batch_sizes = [16, 32]
+        epoch_list = [3, 6, 9]
         kernel_initializers = ["glorot_uniform", "normal"]
         activations = ["relu", "elu"]
-        rates = [0.0, 0.1, 0.2, 0.3, 0.4]
+        rates = [0.3, 0.4, 0.5]
         optimizers = ["adam"]
         total_estimators = len(batch_sizes) * len(epoch_list) * len(kernel_initializers) * len(activations) * \
                            len(rates) * len(optimizers)
