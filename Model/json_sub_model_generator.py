@@ -125,11 +125,11 @@ class JsonSubModelGenerator:
         best_score = 0.0
         best_hyperparameters = dict()
         best_estimator = None
-        batch_sizes = [16, 32, 64]
-        epoch_list = [5, 10, 15]
+        batch_sizes = [16, 32]
+        epoch_list = [15, 20]
         kernel_initializers = ["glorot_uniform", "normal"]
         activations = ["relu", "elu"]
-        rates = [0.0, 0.1, 0.2, 0.3, 0.4]
+        rates = [0.1, 0.2, 0.3, 0.4]
         optimizers = ["adam"]
         total_estimators = len(batch_sizes) * len(epoch_list) * len(kernel_initializers) * len(activations) * \
                            len(rates) * len(optimizers)
@@ -180,6 +180,7 @@ class JsonSubModelGenerator:
                                 clear_session()
                                 tried_estimators += 1
                                 print("Current best estimator's score: {}".format(str(best_score)))
+                                print("Current best hyperparameters: {}".format(best_hyperparameters))
                                 print("Tried estimators = {}/{}.".format(tried_estimators, total_estimators))
         print("Best estimator's score: {}".format(str(best_score)))
         print("Hyperparameters used: {}".format(best_hyperparameters))

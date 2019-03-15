@@ -193,6 +193,7 @@ class RgbSubModelGenerator:
                                         clear_session()
                                         tried_estimators += 1
                                         print("Current best estimator's score: {}".format(str(best_score)))
+                                        print("Current best hyperparameters: {}".format(best_hyperparameters))
                                         print("Tried estimators = {}/{}.".format(tried_estimators, total_estimators))
         print("Best estimator's score: {}".format(str(best_score)))
         print("Hyperparameters used: {}".format(best_hyperparameters))

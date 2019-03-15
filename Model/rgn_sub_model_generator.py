@@ -77,7 +77,7 @@ class RgnSubModelGenerator:
                      rate=0.0, optimizer="adam"):
         """Creates and compiles the model using the given hyperparameters."""
         model = Sequential()
-        model.add(Conv2D(filters=32, kernel_size=kernel_size, kernel_initializer=kernel_initializer,
+        model.add(Conv2D(filters=18, kernel_size=kernel_size, kernel_initializer=kernel_initializer,
                          input_shape=(self.FRAME_HEIGHT, self.FRAME_WIDTH, 3)))
         model.add(BatchNormalization())
         model.add(Activation(activation=activation))
@@ -202,6 +202,7 @@ class RgnSubModelGenerator:
                                         clear_session()
                                         tried_estimators += 1
                                         print("Current best estimator's score: {}".format(str(best_score)))
+                                        print("Current best hyperparameters: {}".format(best_hyperparameters))
                                         print("Tried estimators = {}/{}.".format(tried_estimators, total_estimators))
         print("Best estimator's score: {}".format(str(best_score)))
         print("Hyperparameters used: {}".format(best_hyperparameters))
