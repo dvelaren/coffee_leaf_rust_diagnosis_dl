@@ -49,10 +49,10 @@ class modelEvaluator:
 			self.rgb_sub_model = km.load_model(args.smd + '/' + 'rgb_sub_model.h5')
 			self.re_sub_model = km.load_model(args.smd + '/' + 're_sub_model.h5')
 			self.rgn_sub_model = km.load_model(args.smd + '/' + 'rgn_sub_model.h5')
-			self.json_sub_model_weight = 0.143480102 # 0.191215455 (not squared f1-score).
-			self.rgb_sub_model_weight = 0.304496943 # 0.278559916 (not squared f1-score).
-			self.re_sub_model_weight = 0.26099692 # 0.257896141 (not squared f1-score).
-			self.rgn_sub_model_weight = 0.291026035 # 0.272328488 (not squared f1-score).
+			self.json_sub_model_weight = 0.191215455
+			self.rgb_sub_model_weight = 0.278559916
+			self.re_sub_model_weight = 0.257896141
+			self.rgn_sub_model_weight = 0.272328488
 
 
 
